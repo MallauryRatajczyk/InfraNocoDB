@@ -1,0 +1,28 @@
+---
+# tasks/main.yml
+
+- name: Mettre à jour les paquets
+  apt:
+    update_cache: yes
+    upgrade: yes
+
+- name: Installer Docker et Docker Compose
+  apt:
+    name:
+      - docker.io
+      - docker-compose
+      - python3-pip
+    state: present
+
+- name: Activer et démarrer Docker
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Ajouter l'utilisateur actuel au groupe Docker
+  user:
+    name: engineer
+    groups: docker
+    append: yes
+

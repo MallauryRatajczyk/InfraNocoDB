@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nocodb
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nocodb
+  template:
+    metadata:
+      labels:
+        app: nocodb
+    spec:
+      containers:
+      - name: nocodb
+        image: nocodb/nocodb:latest
+        env:
+        - name: POSTGRES_CONNECTION_STRING
+          value: "postgres://yohann:azerty@34.155.233.126:5432/mydatabase"
+
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nocodb-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: nocodb
+  ports:
+    - protocol: TCP
+      port: 8080       # Port accessible à l'intérieur du cluster
+      targetPort: 8080  # Port sur lequel tourne NocoDB dans le conteneur
+      nodePort: 32222 
