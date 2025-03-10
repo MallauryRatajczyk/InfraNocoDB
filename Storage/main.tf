@@ -1,0 +1,125 @@
+provider "google" {
+  project = var.gcp_project
+  region  = var.gcp_region
+  zone    = var.gcp_zone
+  # credentials = file("/mnt/c/Users/dauff/OneDrive/Bureau/project-quickdata-399be628e539.jso")
+}
+
+# Suppression du cluster Kubernetes (commenté)
+# resource "google_container_cluster" "nocodb_cluster" {
+#   name                = "nocodb-cluster"
+#   location            = var.gcp_region
+#   initial_node_count  = 2
+# }
+
+# Suppression de la configuration de la base de données NoCDB (commentée)
+# resource "google_sql_database_instance" "nocodb_db" {
+#   name             = "nocodb-db"
+#   database_version = "POSTGRES_14"  # Vérifiez la version de Postgres que vous souhaitez utiliser
+#   region          = var.region
+#   settings {
+#     tier = "db-f1-micro"
+#     ip_configuration {
+#       authorized_networks {
+#         value = "0.0.0.0/32"
+#       }
+#     }
+#   }
+# }
+
+# Configuration de l'instance SQL PostgreSQL
+resource "google_sql_database_instance" "postgres_instance" {
+  name             = "my-postgres-db"
+  database_version = "POSTGRES_15"  # Assurez-vous que cette version de PostgreSQL est celle que vous voulez
+  region           = var.gcp_region
+
+  settings {
+    tier               = "db-f1-micro"
+    availability_type  = "REGIONAL"  # Vous pouvez ajuster en fonction de vos besoins
+    backup_configuration {
+      enabled   = true
+      start_time = "23:00"
+    }
+
+    ip_configuration {
+      ipv4_enabled    = true
+      authorized_networks {
+        name  = "default"
+        value = "0.0.0.0/0"  # Assurez-vous de la sécurité de votre base avec cette configuration ouverte
+      }
+    }
+  }
+}
+
+# Configuration de la base de données PostgreSQL
+resource "google_sql_database" "database" {
+  name     = "mydatabase"
+  instance = google_sql_database_instance.postgres_instance.name
+}
+
+# Création d'un utilisateur pour la base de données PostgreSQL
+resource "google_sql_user" "users" {
+  name     = "yohann"
+  instance = google_sql_database_instance.postgres_instance.name
+  password = "azerty"  # Veillez à utiliser un mot de passe sécurisé
+}
+
+
+resource "google_storage_bucket" "my_bucket" {
+  name          = "my-unique-bucket-name"
+  location      = var.gcp_region
+  storage_class = "COLDLINE" #Type de stockage (STANDARD, NEARLINE, COLDLINE, etc.) pourquoi codline a rajouter au dossier
+
+  versioning { #Active la gestion des versions des fichiers
+    enabled = true
+  }
+}
+
+# Cloud Function pour le dump PostgreSQL vers le bucket
+resource "google_storage_bucket" "function_bucket" {
+  name          = "cloud-function-bucket"
+  location      = var.gcp_region
+}
+
+resource "google_cloudfunctions_function" "pg_dump_function" {
+  name        = "pg-dump-function"
+  runtime     = "python310"
+  entry_point = "dump_postgres"
+  region      = var.gcp_region
+  source_archive_bucket = google_storage_bucket.function_bucket.name #Indique où est stocké le code source de la fonction
+  source_archive_object = google_storage_bucket_object.function_code.name
+
+  event_trigger {
+    event_type = "google.pubsub.topic.publish"
+    resource   = google_pubsub_topic.pg_dump_topic.name
+  }
+  environment_variables = {
+    PG_HOST     = google_sql_database_instance.postgres_instance.public_ip_address
+    PG_USER     = "yohann"
+    PG_PASSWORD = "azerty"
+    PG_DB       = "mydatabase"
+    BUCKET_NAME = google_storage_bucket.my_bucket.name
+  }
+}
+
+resource "google_storage_bucket_object" "function_code" {
+  name   = "pg-dump-function.zip"
+  bucket = google_storage_bucket.function_bucket.name
+  source = "./pg-dump-function.zip" # Fichier ZIP contenant le code Python de la fonction
+}
+
+resource "google_pubsub_topic" "pg_dump_topic" {
+  name = "pg-dump-topic"
+}
+
+resource "google_cloud_scheduler_job" "pg_dump_schedule" { #Définit une ressource Cloud Scheduler Job qui planifie une tâche récurrente.
+  name        = "pg-dump-schedule"
+  description = "Scheduled job to trigger PostgreSQL dump"#déclenche un dump PostgreSQL.
+  schedule    = "0 2 * * *" # Tous les jours à 2h du matin
+  time_zone   = "Europe/Paris"
+
+  pubsub_target {
+    topic_name = google_pubsub_topic.pg_dump_topic.id #Définit une ressource Pub/Sub Topic nommée pg_dump_topic.
+    data       = base64encode("Trigger dump")# Ce topic servira à envoyer un message lorsqu'on veut déclencher l'exécution du pg_dump.
+  }
+}
