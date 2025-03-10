@@ -5,28 +5,9 @@ provider "google" {
   # credentials = file("/mnt/c/Users/dauff/OneDrive/Bureau/project-quickdata-399be628e539.jso")
 }
 
-# Suppression du cluster Kubernetes (commenté)
-# resource "google_container_cluster" "nocodb_cluster" {
-#   name                = "nocodb-cluster"
-#   location            = var.gcp_region
-#   initial_node_count  = 2
-# }
-
-# Suppression de la configuration de la base de données NoCDB (commentée)
-# resource "google_sql_database_instance" "nocodb_db" {
-#   name             = "nocodb-db"
-#   database_version = "POSTGRES_14"  # Vérifiez la version de Postgres que vous souhaitez utiliser
-#   region          = var.region
-#   settings {
-#     tier = "db-f1-micro"
-#     ip_configuration {
-#       authorized_networks {
-#         value = "0.0.0.0/32"
-#       }
-#     }
-#   }
-# }
-
+##########################################
+#     Configuration Base de données      #
+##########################################
 # Configuration de l'instance SQL PostgreSQL
 resource "google_sql_database_instance" "postgres_instance" {
   name             = "my-postgres-db"
@@ -37,12 +18,12 @@ resource "google_sql_database_instance" "postgres_instance" {
     tier               = "db-f1-micro"
     availability_type  = "REGIONAL"  # Vous pouvez ajuster en fonction de vos besoins
     backup_configuration {
-      enabled   = true
+      enabled    = true
       start_time = "23:00"
     }
 
     ip_configuration {
-      ipv4_enabled    = true
+      ipv4_enabled = true
       authorized_networks {
         name  = "default"
         value = "0.0.0.0/0"  # Assurez-vous de la sécurité de votre base avec cette configuration ouverte
@@ -64,7 +45,11 @@ resource "google_sql_user" "users" {
   password = "azerty"  # Veillez à utiliser un mot de passe sécurisé
 }
 
+##########################################
+#           Configuration Backup         #
+##########################################
 
+# Bucket for store dump
 resource "google_storage_bucket" "my_bucket" {
   name          = "my-unique-bucket-name"
   location      = var.gcp_region
@@ -75,39 +60,7 @@ resource "google_storage_bucket" "my_bucket" {
   }
 }
 
-# Cloud Function pour le dump PostgreSQL vers le bucket
-resource "google_storage_bucket" "function_bucket" {
-  name          = "cloud-function-bucket"
-  location      = var.gcp_region
-}
-
-resource "google_cloudfunctions_function" "pg_dump_function" {
-  name        = "pg-dump-function"
-  runtime     = "python310"
-  entry_point = "dump_postgres"
-  region      = var.gcp_region
-  source_archive_bucket = google_storage_bucket.function_bucket.name #Indique où est stocké le code source de la fonction
-  source_archive_object = google_storage_bucket_object.function_code.name
-
-  event_trigger {
-    event_type = "google.pubsub.topic.publish"
-    resource   = google_pubsub_topic.pg_dump_topic.name
-  }
-  environment_variables = {
-    PG_HOST     = google_sql_database_instance.postgres_instance.public_ip_address
-    PG_USER     = "yohann"
-    PG_PASSWORD = "azerty"
-    PG_DB       = "mydatabase"
-    BUCKET_NAME = google_storage_bucket.my_bucket.name
-  }
-}
-
-resource "google_storage_bucket_object" "function_code" {
-  name   = "pg-dump-function.zip"
-  bucket = google_storage_bucket.function_bucket.name
-  source = "./pg-dump-function.zip" # Fichier ZIP contenant le code Python de la fonction
-}
-
+# TOPIC PUB/SUB for trigger
 resource "google_pubsub_topic" "pg_dump_topic" {
   name = "pg-dump-topic"
 }
@@ -121,5 +74,46 @@ resource "google_cloud_scheduler_job" "pg_dump_schedule" { #Définit une ressour
   pubsub_target {
     topic_name = google_pubsub_topic.pg_dump_topic.id #Définit une ressource Pub/Sub Topic nommée pg_dump_topic.
     data       = base64encode("Trigger dump")# Ce topic servira à envoyer un message lorsqu'on veut déclencher l'exécution du pg_dump.
+  }
+}
+
+# Bucket for storage of python file
+resource "google_storage_bucket" "function_bucket" {
+  name     = "cloud-function-bucket"
+  location = var.gcp_region
+}
+
+resource "google_storage_bucket_object" "function_code" {
+  name   = "dump_postgres.zip"
+  bucket = google_storage_bucket.function_bucket.name
+  source = "./dump_postgres.zip" # Fichier ZIP contenant le code Python de la fonction
+}
+
+resource "google_cloudfunctions2_function" "pg_dump_function" {
+  name        = "pg-dump-function"
+  location    = var.gcp_region
+  description = "Function for dump"
+
+  build_config {
+    runtime     = "python310"
+    entry_point = "dump_postgres"
+    environment_variables = {
+      PG_HOST     = google_sql_database_instance.postgres_instance.public_ip_address
+      PG_USER     = "yohann"
+      PG_PASSWORD = "azerty"
+      PG_DB       = "mydatabase"
+      BUCKET_NAME = google_storage_bucket.my_bucket.name
+    }
+    source {
+      storage_source {
+        bucket = google_storage_bucket.function_bucket.name #Indique où est stocké le code source de la fonction
+        object = google_storage_bucket_object.function_code.name
+      }
+    }
+  }
+
+  event_trigger {
+    event_type   = "google.cloud.pubsub.topic.v1.messagePublished"
+    pubsub_topic = google_pubsub_topic.pg_dump_topic.id
   }
 }

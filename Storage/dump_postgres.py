@@ -4,7 +4,7 @@ import psycopg2
 from google.cloud import secretmanager
 from google.cloud import storage
 
-def handler(request):
+def dump_postgres(request):
     # Récupérer les informations de connexion à la DB depuis Secret Manager
     secret_name = os.environ['DB_SECRET_NAME']
     bucket_name = os.environ['BUCKET_NAME']
