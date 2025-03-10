@@ -27,6 +27,7 @@ kind: Service
 metadata:
   name: nocodb-service
 spec:
+  sessionAffinity: ClientIP
   type: LoadBalancer
   selector:
     app: nocodb

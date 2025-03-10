@@ -5,3 +5,4 @@
     - docker_setup
     - k8s_setup
     - deploy_nocodb
+    - reverse_proxy
