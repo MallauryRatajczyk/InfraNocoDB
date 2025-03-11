@@ -10,13 +10,14 @@ provider "google" {
 ##########################################
 # Configuration de l'instance SQL PostgreSQL
 resource "google_sql_database_instance" "postgres_instance" {
-  name             = "my-postgres-db"
-  database_version = "POSTGRES_15"  # Assurez-vous que cette version de PostgreSQL est celle que vous voulez
-  region           = var.gcp_region
+  name                = var.database.instance
+  database_version    = var.database.version
+  region              = var.gcp_region
+  deletion_protection = "false"
 
   settings {
-    tier               = "db-f1-micro"
-    availability_type  = "REGIONAL"  # Vous pouvez ajuster en fonction de vos besoins
+    tier              = "db-f1-micro"
+    availability_type = "REGIONAL" # Vous pouvez ajuster en fonction de vos besoins
     backup_configuration {
       enabled    = true
       start_time = "23:00"
@@ -26,7 +27,7 @@ resource "google_sql_database_instance" "postgres_instance" {
       ipv4_enabled = true
       authorized_networks {
         name  = "default"
-        value = "0.0.0.0/0"  # Assurez-vous de la sécurité de votre base avec cette configuration ouverte
+        value = "0.0.0.0/0" # Assurez-vous de la sécurité de votre base avec cette configuration ouverte
       }
     }
   }
@@ -34,24 +35,23 @@ resource "google_sql_database_instance" "postgres_instance" {
 
 # Configuration de la base de données PostgreSQL
 resource "google_sql_database" "database" {
-  name     = "mydatabase"
+  name     = var.database.name
   instance = google_sql_database_instance.postgres_instance.name
 }
 
 # Création d'un utilisateur pour la base de données PostgreSQL
 resource "google_sql_user" "users" {
-  name     = "yohann"
+  name     = var.user.name
   instance = google_sql_database_instance.postgres_instance.name
-  password = "azerty"  # Veillez à utiliser un mot de passe sécurisé
+  password = var.user.password # Veillez à utiliser un mot de passe sécurisé
 }
 
 ##########################################
 #           Configuration Backup         #
 ##########################################
-
 # Bucket for store dump
 resource "google_storage_bucket" "my_bucket" {
-  name          = "my-unique-bucket-name"
+  name          = "rocket-storage-bucket-name"
   location      = var.gcp_region
   storage_class = "COLDLINE" #Type de stockage (STANDARD, NEARLINE, COLDLINE, etc.) pourquoi codline a rajouter au dossier
 
@@ -67,19 +67,20 @@ resource "google_pubsub_topic" "pg_dump_topic" {
 
 resource "google_cloud_scheduler_job" "pg_dump_schedule" { #Définit une ressource Cloud Scheduler Job qui planifie une tâche récurrente.
   name        = "pg-dump-schedule"
-  description = "Scheduled job to trigger PostgreSQL dump"#déclenche un dump PostgreSQL.
-  schedule    = "0 2 * * *" # Tous les jours à 2h du matin
+  description = "Scheduled job to trigger PostgreSQL dump" #déclenche un dump PostgreSQL.
+  schedule    = "0 2 * * *"                                # Tous les jours à 2h du matin
   time_zone   = "Europe/Paris"
+  region      = "europe-west2"
 
   pubsub_target {
     topic_name = google_pubsub_topic.pg_dump_topic.id #Définit une ressource Pub/Sub Topic nommée pg_dump_topic.
-    data       = base64encode("Trigger dump")# Ce topic servira à envoyer un message lorsqu'on veut déclencher l'exécution du pg_dump.
+    data       = base64encode("Trigger dump")         # Ce topic servira à envoyer un message lorsqu'on veut déclencher l'exécution du pg_dump.
   }
 }
 
 # Bucket for storage of python file
 resource "google_storage_bucket" "function_bucket" {
-  name     = "cloud-function-bucket"
+  name     = "rocket-cloud-function-bucket"
   location = var.gcp_region
 }
 
@@ -98,15 +99,16 @@ resource "google_cloudfunctions2_function" "pg_dump_function" {
     runtime     = "python310"
     entry_point = "dump_postgres"
     environment_variables = {
-      PG_HOST     = google_sql_database_instance.postgres_instance.public_ip_address
-      PG_USER     = "yohann"
-      PG_PASSWORD = "azerty"
-      PG_DB       = "mydatabase"
-      BUCKET_NAME = google_storage_bucket.my_bucket.name
+      PG_HOST                = google_sql_database_instance.postgres_instance.public_ip_address
+      PG_USER                = "${var.user.name}"
+      PG_PASSWORD            = "${var.user.name}"
+      PG_DB                  = "${var.database.name}"
+      BUCKET_NAME            = google_storage_bucket.my_bucket.name
+      GOOGLE_FUNCTION_SOURCE = "dump_postgres.py"
     }
     source {
       storage_source {
-        bucket = google_storage_bucket.function_bucket.name #Indique où est stocké le code source de la fonction
+        bucket = google_storage_bucket.function_bucket.name
         object = google_storage_bucket_object.function_code.name
       }
     }
