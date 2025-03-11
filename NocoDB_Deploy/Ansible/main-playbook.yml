@@ -1,0 +1,8 @@
+- name: Déploiement de NocoDB sur GCP
+  hosts: servers
+  become: yes
+  roles:
+    - docker_setup
+    - k8s_setup
+    - deploy_nocodb
+    - metrics

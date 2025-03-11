@@ -1,0 +1,5 @@
+node_exporter_version: "1.9.0"
+#node_exporter_url: "https://github.com/prometheus/node_exporter/releases/latest/download/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+node_exporter_url: "https://github.com/prometheus/node_exporter/releases/download/v1.9.0/node_exporter-1.9.0.linux-amd64.tar.gz"
+node_exporter_dir: "/opt/node_exporter-{{ node_exporter_version }}.linux-amd64"
+node_exporter_bin: "/usr/local/bin/node_exporter"

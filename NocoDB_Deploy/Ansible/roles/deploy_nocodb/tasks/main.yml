@@ -1,0 +1,8 @@
+- name: Copier le fichier K8S sur la VM
+  copy:
+    src: ../deployment-nocodb.yml
+    dest: ./deployment-nocodb.yml
+
+- name: Appliquer le fichier Kubernetes
+  shell: kubectl apply -f ./deployment-nocodb.yml --validate=false --server=https://127.0.0.1:6443
+

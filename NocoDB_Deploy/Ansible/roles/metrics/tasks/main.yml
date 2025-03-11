@@ -1,0 +1,40 @@
+- name: Télécharger Node Exporter
+  get_url:
+    url: "{{ node_exporter_url }}"
+    dest: "/tmp/node_exporter-{{ node_exporter_version }}.tar.gz"
+
+- name: Extraire l'archive
+  ansible.builtin.unarchive:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.tar.gz"
+    dest: "/opt/"
+    remote_src: yes
+
+- name: Copier le binaire dans /usr/local/bin/
+  copy:
+    src: "{{ node_exporter_dir }}/node_exporter"
+    dest: "{{ node_exporter_bin }}"
+    mode: '0755'
+    remote_src: yes
+
+- name: Créer un utilisateur system node_exporter
+  ansible.builtin.user:
+    name: node_exporter
+    shell: /usr/sbin/nologin
+    system: yes
+    createhome: no
+
+- name: Créer le fichier de service systemd
+  template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+  notify: Restart node_exporter
+
+- name: Recharger systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Activer et démarrer Node Exporter
+  systemd:
+    name: node_exporter
+    state: started
+    enabled: yes
