@@ -25,7 +25,7 @@ resource "google_compute_instance" "nocodb-instance" { #Création d'une VM pour 
   machine_type = var.ci_runner_instance_type
   project      = var.gcp_project
   zone         = var.gcp_zone
-  tags         = ["http-server", "https-server"] #Les tags pour le réseau
+  tags         = ["node-exporter", "custom-port"] #Les tags pour le réseau
 
   metadata = {
     # 🔹 Utilisation d'une clé SSH persistante (au lieu d'en générer une à chaque `terraform apply`)
@@ -54,40 +54,43 @@ resource "google_compute_instance" "nocodb-instance" { #Création d'une VM pour 
     }*/ #Permet si activé de fermer automatiquement la VM si les ressources sont demandées ailleurs et de ne pas redémarrer automatiquement
 }
 
-/*  metadata_startup_script = "${file("../dockinstall.sh")}"
-  metadata = {
-    ssh-keys = "mallaury.ratajczyk@gmail.com:${file("~/.ssh/id_rsa.pub")}"
-  }
-*/
-/*provisioner "remote-exec" {
-    inline = [
-      # Nginx
-      "sudo docker run -d --name nginx-container -p 80:80 nginx",
+# resource "google_compute_firewall" "allow_reverse_proxy" { #Configuration du firewall
+#   name    = "allow-reverse-proxy"
+#   network = "default"
 
-      # Jenkins
-      "sudo docker run -p 8080:8080 jenkins"
-    ]
+#   allow {
+#     protocol = "tcp"
+#     ports    = ["32222", "5432", "9100"]
+#   }
 
-    connection {
-      type        = "ssh"
-      user        = "mallaury.ratajczyk@gmail.com"  # Nom d'utilisateur pour la connexion SSH
-      private_key = file("~/.ssh/id_rsa")  # Ta clé privée SSH pour l'authentification
-      host        = self.network_interface[0].access_config[0].nat_ip  # L'IP publique de la VM
-    }
-  }*/ 
-
-resource "google_compute_firewall" "allow_http_https_ssh" { #Configuration du firewall
-  name    = "allow-http-https-ssh"
+#   source_ranges = ["34.155.139.235/32", "0.0.0.0/0"] # Seul le reverse proxy peut y accéder
+# }
+resource "google_compute_firewall" "allow_node_exporter" {
+  name    = "allow-node-exporter"
   network = "default"
 
   allow {
     protocol = "tcp"
-    ports    = ["80", "443", "8080", "22", "32222","5432"] #8080 à enlever une fois le reverse proxy configuré
+    ports    = ["9100"]
   }
 
-  source_ranges = ["0.0.0.0/0"] # Qui a accès à la VM
-  target_tags   = ["http-server", "https-server"] #Accessible uniquement par ceux ayant le tag
+  source_ranges = ["34.163.103.61/32"]
+  target_tags   = ["node-exporter"]
 }
+
+resource "google_compute_firewall" "allow_custom_port" {
+  name    = "allow-custom-port"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["32222"]
+  }
+
+  source_ranges = ["34.155.139.235/32"]
+  target_tags   = ["custom-port"]
+}
+
 
 output "instance_ip" {
   value       = google_compute_address.static_ip_nocodb.address

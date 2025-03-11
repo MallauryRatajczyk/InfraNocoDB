@@ -1,0 +1,22 @@
+server { 
+    listen 80;
+    server_name 34.155.139.235 rocketlacapsule.ddns.net;  # IP & DNS
+
+    location /monitoring/ {
+        rewrite ^/monitoring/(.*)$ /$1 break;  # Retirer le /monitoring du chemin
+        proxy_pass http://34.163.103.61:3000/;  # Ne pas ajouter /login ici
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+
+    location / {  #NocoDB
+        proxy_pass http://34.163.251.126:32222; 
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
