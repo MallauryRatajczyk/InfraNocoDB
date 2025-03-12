@@ -4,11 +4,11 @@ provider "google" {
 }
 
 resource "google_compute_address" "static_ip_bastion" { #Créer une IP Statique
-  name   = "static-ip-bastion"
+  name   = var.static_ip
   region = var.gcp_region
 }
 
-# 🔹 Supprime l'ancienne clé SSH pour éviter l'erreur `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`
+# Supprime l'ancienne clé SSH pour éviter l'erreur `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`
 resource "null_resource" "clear_ssh_known_hosts" {
   provisioner "local-exec" {
     command = "ssh-keygen -f ~/.ssh/known_hosts -R ${google_compute_address.static_ip_bastion.address}"
@@ -19,25 +19,26 @@ resource "null_resource" "clear_ssh_known_hosts" {
   }
 }
 
-resource "google_compute_instance" "bastion-instance" { #Création d'une VM pour héberger NocoDB
-  name         = "bastion-instance"
+# Création d'une VM pour héberger NocoDB
+resource "google_compute_instance" "bastion-instance" {
+  name         = var.instance_name
   hostname     = var.hostname
   machine_type = var.ci_runner_instance_type
   project      = var.gcp_project
   zone         = var.gcp_zone
-  tags         = ["bastion"] #Les tags pour le réseau
+  tags         = var.tags #Les tags pour le réseau
 
   metadata = {
-    # 🔹 Utilisation d'une clé SSH persistante (au lieu d'en générer une à chaque `terraform apply`)
-    ssh-keys = "engineer:${file("${var.ssh_key_file}.pub")}"
+    # Utilisation d'une clé SSH persistante (au lieu d'en générer une à chaque `terraform apply`)
+    ssh-keys = "${ssh_user}:${file("${var.ssh_key_file}.pub")}"
   }
 
-  boot_disk { #C'est de ce disque que la VM démarre
+  boot_disk {
     initialize_params {
       image = "debian-cloud/debian-12-bookworm-v20250212"
       size  = 20
       type  = "pd-standard"
-    } # On peut ajouter d'autres disques pour stocker les données
+    }
   }
 
   network_interface {
@@ -54,17 +55,18 @@ resource "google_compute_instance" "bastion-instance" { #Création d'une VM pour
     }*/ #Permet si activé de fermer automatiquement la VM si les ressources sont demandées ailleurs et de ne pas redémarrer automatiquement
 }
 
-resource "google_compute_firewall" "bastion_firewall" { #Configuration du firewall
-  name    = "allow-bastion"
+# Configuration du firewall
+resource "google_compute_firewall" "bastion_firewall" {
+  name    = var.firewall
   network = "default"
 
   allow {
     protocol = "tcp"
-    ports    = ["80", "443", "22"] #8080 à enlever une fois le reverse proxy configuré
+    ports    = ["80", "443", "22"]
   }
 
   source_ranges = ["0.0.0.0/0"] # Qui a accès à la VM
-  target_tags   = ["bastion"]   #Accessible uniquement par ceux ayant le tag
+  target_tags   = var.tags      #Accessible uniquement par ceux ayant le tag
 }
 
 output "instance_ip" {
@@ -72,13 +74,14 @@ output "instance_ip" {
   description = "Adresse IP publique de la VM"
 }
 
-resource "local_file" "ansible_inventory" { # Création du fichier d'inventaire pour Ansible
+# Création du fichier d'inventaire pour Ansible
+resource "local_file" "ansible_inventory" {
   content  = <<EOT
 [servers]
 bastion-instance ansible_host=${google_compute_address.static_ip_bastion.address}
 
 [all:vars]
-ansible_user=engineer
+ansible_user=${var.ssh_user}
 ansible_ssh_private_key_file=${var.ssh_key_file}
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
 EOT

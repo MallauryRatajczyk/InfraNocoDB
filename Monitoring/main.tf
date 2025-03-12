@@ -18,7 +18,7 @@ resource "null_resource" "clear_ssh_known_hosts" {
   }
 
   triggers = {
-    always_run = "${timestamp()}"  # Force l'exécution à chaque terraform apply
+    always_run = "${timestamp()}" # Force l'exécution à chaque terraform apply
   }
 }
 
@@ -103,6 +103,6 @@ resource "local_file" "ansible_inventory" { #Créer un fichier inventory.ini pou
  ansible_ssh_private_key_file=${var.ssh_key_file}
  EOT
 
- #ansible_user est le nom d'utilisateur par défaut de la VM
-   filename = "Monitoring/Ansible/inventory.ini"
- }
+  #ansible_user est le nom d'utilisateur par défaut de la VM
+  filename = "Monitoring/Ansible/inventory.ini"
+}
