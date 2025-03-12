@@ -26,11 +26,7 @@ variable "user" {
     name     = string
     password = string
   })
-  sensitive = false # TODO mettre à true lorsqu'on aura fini le test
-  default = {
-    name     = "yohann"
-    password = "azerty"
-  }
+  sensitive = true
 }
 
 variable "database" {
