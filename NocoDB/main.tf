@@ -21,7 +21,8 @@ resource "null_resource" "clear_ssh_known_hosts" {
 
 # Création d'une VM pour héberger NocoDB
 resource "google_compute_instance" "nocodb-instance" {
-  name         = var.instance_name
+  count        = var.instance.count
+  name         = var.instance.name
   hostname     = var.hostname
   machine_type = var.ci_runner_instance_type
   project      = var.gcp_project

@@ -38,9 +38,15 @@ variable "static_ip" {
   default = "static-ip-nocodb"
 }
 
-variable "instance_name" {
-  type    = string
-  default = "nocodb-instance"
+variable "instance" {
+  type = object({
+    name  = string
+    count = number
+  })
+  default = {
+    name  = "nocodb-instance"
+    count = 1
+  }
 }
 
 variable "disk_name" {
