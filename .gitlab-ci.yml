@@ -24,7 +24,8 @@ build:
   before_script:
     - mkdir .ssh
     - echo $CI_KEY_SSH > .ssh/id_rsa.pub
-    - echo "{\nname = \"truc\"\npassword = \"azerty\"" > terraform.tfvars
+    - echo "{ name = \"truc\"" > terraform.tfvars
+    - echo " password = \"azerty\"}" >> terraform.tfvars
     - cat terraform.tfvars
     - echo $CI_TERRAFORM_USER
   script:
