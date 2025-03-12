@@ -30,7 +30,7 @@ resource "google_compute_instance" "bastion-instance" {
 
   metadata = {
     # Utilisation d'une clé SSH persistante (au lieu d'en générer une à chaque `terraform apply`)
-    ssh-keys = "${ssh_user}:${file("${var.ssh_key_file}.pub")}"
+    ssh-keys = "${var.ssh_user}:${file("${var.ssh_key_file}.pub")}"
   }
 
   boot_disk {
