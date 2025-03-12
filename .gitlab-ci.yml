@@ -21,6 +21,9 @@ build:
   environment:
     name: $TF_STATE_NAME
     action: prepare
+  before_script:
+    - mkdir .ssh
+    - echo $CI_KEY_SSH > .ssh/id_rsa.pub
 
 deploy:
   extends: .terraform:deploy
