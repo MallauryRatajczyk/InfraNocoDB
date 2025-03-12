@@ -4,11 +4,11 @@ provider "google" {
 }
 
 resource "google_compute_address" "static_ip_nocodb" { #Créer une IP Statique
-  name   = "static-ip-nocodb"
+  name   = var.static_ip
   region = var.gcp_region
 }
 
-# 🔹 Supprime l'ancienne clé SSH pour éviter l'erreur `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`
+# Supprime l'ancienne clé SSH pour éviter l'erreur `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`
 resource "null_resource" "clear_ssh_known_hosts" {
   provisioner "local-exec" {
     command = "ssh-keygen -f ~/.ssh/known_hosts -R ${google_compute_address.static_ip_nocodb.address}"
@@ -19,32 +19,33 @@ resource "null_resource" "clear_ssh_known_hosts" {
   }
 }
 
-resource "google_compute_instance" "nocodb-instance" { #Création d'une VM pour héberger NocoDB
-  name         = "nocodb-instance"
+# Création d'une VM pour héberger NocoDB
+resource "google_compute_instance" "nocodb-instance" {
+  name         = var.instance_name
   hostname     = var.hostname
   machine_type = var.ci_runner_instance_type
   project      = var.gcp_project
   zone         = var.gcp_zone
-  tags         = ["node-exporter", "custom-port"] #Les tags pour le réseau
+  tags         = concat(var.firewall[0].tags, var.firewall[1].tags) #Les tags pour le réseau
 
   metadata = {
     # Utilisation d'une clé SSH persistante (au lieu d'en générer une à chaque `terraform apply`)
-    ssh-keys = "${var.ansible_user}:${file("${var.ssh_key_file}.pub")}"
+    ssh-keys = "${var.ssh_user}:${file("${var.ssh_key_file}.pub")}"
   }
 
-  boot_disk { #C'est de ce disque que la VM démarre
+  boot_disk {
     initialize_params {
       image = "debian-cloud/debian-12-bookworm-v20250212"
       size  = 20
       type  = "pd-standard"
-    } # On peut ajouter d'autres disques pour stocker les données
+    }
   }
 
   network_interface {
     network = "default"
     access_config {
       // Si vide, IP aléatoire mais crée automatiquement
-      nat_ip = google_compute_address.static_ip_nocodb.address #Utilise l'IP statique définit plus haut
+      nat_ip = google_compute_address.static_ip_nocodb.address
     }
   }
 
@@ -54,40 +55,30 @@ resource "google_compute_instance" "nocodb-instance" { #Création d'une VM pour 
     }*/ #Permet si activé de fermer automatiquement la VM si les ressources sont demandées ailleurs et de ne pas redémarrer automatiquement
 }
 
-# resource "google_compute_firewall" "allow_reverse_proxy" { #Configuration du firewall
-#   name    = "allow-reverse-proxy"
-#   network = "default"
-
-#   allow {
-#     protocol = "tcp"
-#     ports    = ["32222", "5432", "9100"]
-#   }
-#   source_ranges = ["34.155.139.235/32", "0.0.0.0/0"] # Seul le reverse proxy peut y accéder
-# }
 resource "google_compute_firewall" "allow_node_exporter" {
-  name    = "allow-node-exporter"
+  name    = var.firewall[0].name
   network = "default"
 
   allow {
     protocol = "tcp"
-    ports    = ["9100"]
+    ports    = var.firewall[0].ports
   }
 
-  source_ranges = ["34.163.103.61/32"]
-  target_tags   = ["node-exporter"]
+  source_ranges = var.firewall[0].source_ranges
+  target_tags   = var.firewall[0].tags
 }
 
 resource "google_compute_firewall" "allow_custom_port" {
-  name    = "allow-custom-port"
+  name    = var.firewall[1].name
   network = "default"
 
   allow {
     protocol = "tcp"
-    ports    = ["32222"]
+    ports    = var.firewall[1].ports
   }
 
-  source_ranges = ["34.155.139.235/32"]
-  target_tags   = ["custom-port"]
+  source_ranges = var.firewall[1].source_ranges
+  target_tags   = var.firewall[1].tags
 }
 
 output "instance_ip" {
@@ -95,13 +86,14 @@ output "instance_ip" {
   description = "Adresse IP publique de la VM"
 }
 
-resource "local_file" "ansible_inventory" { # Création du fichier d'inventaire pour Ansible
+# Création du fichier d'inventaire pour Ansible
+resource "local_file" "ansible_inventory" {
   content  = <<EOT
 [servers]
 nocodb-instance ansible_host=${google_compute_address.static_ip_nocodb.address}
 
 [all:vars]
-ansible_user=engineer
+ansible_user=${var.ssh_user}
 ansible_ssh_private_key_file=${var.ssh_key_file}
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
 EOT
