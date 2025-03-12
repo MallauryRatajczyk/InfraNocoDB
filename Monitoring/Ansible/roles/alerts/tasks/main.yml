@@ -1,0 +1,22 @@
+- name: Copier le fichier de configuration Prometheus
+  copy:
+    src: ./prometheus.yml
+    dest: /home/{{ ansible_user }}/monitoring/prometheus.yml
+    mode: '0644'
+
+- name: Copier le fichier des règles d'alerte pour Prometheus
+  copy:
+    src: ./alert_rules.yml
+    dest: /home/{{ ansible_user }}/monitoring/alert_rules.yml
+    mode: '0644'
+
+- name: Copier le fichier de configuration d'Alertmanager
+  copy:
+    src: ./alertmanager.yml
+    dest: /home/{{ ansible_user }}/monitoring/alertmanager.yml
+    mode: '0644'
+
+- name: Redémarrer les services pour appliquer les changements
+  command:
+    chdir: /home/{{ ansible_user }}/monitoring
+    cmd: docker-compose restart

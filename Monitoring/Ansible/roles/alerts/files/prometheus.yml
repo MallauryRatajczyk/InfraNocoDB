@@ -20,3 +20,8 @@ scrape_configs:
   - job_name: 'grafana'
     static_configs:
       - targets: ['grafana:3000']  # Cible Grafana (sur le même réseau)
+
+  - job_name: "nocodb"
+    metrics_path: "/metrics"  # Remplace par le bon endpoint si nécessaire
+    static_configs:
+      - targets: ["34.163.251.126:9100"]

@@ -1,0 +1,16 @@
+global:                 # Configuration globale
+  resolve_timeout: 5m   # Temps pour résoudre une alerte
+
+route:                            # Configuration des routes        
+  group_by: ['alertname']         # Groupe par nom d'alerte
+  receiver: 'slack-notifications' # Récepteur par défaut
+  repeat_interval: 3h             # Envoie une alerte toutes les 3 heures si le problème persiste
+
+receivers:                        # Configuration des récepteurs         
+  - name: 'slack-notifications'   # Nom du récepteur
+    slack_configs:                # Configuration de Slack   
+      - api_url: 'https://hooks.slack.com/services/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'  # Remplace par ton URL Slack
+        channel: '#project-quickdata-alertemonitoring'  # Remplace par ton canal Slack
+        send_resolved: true                             # Envoie une notification lorsqu'une alerte est résolue   
+        title: "{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}"     # Titre de la notification
+        text: "{{ range .Alerts }}{{ .Annotations.description }}\n{{ end }}"  # Texte de la notification

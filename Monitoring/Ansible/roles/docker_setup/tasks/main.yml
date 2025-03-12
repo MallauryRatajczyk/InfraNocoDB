@@ -1,0 +1,12 @@
+#Etape 3 : Activer et configurer Docker 
+- name: Activer et démarrer Docker
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Ajouter l'utilisateur actuel au groupe Docker
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes

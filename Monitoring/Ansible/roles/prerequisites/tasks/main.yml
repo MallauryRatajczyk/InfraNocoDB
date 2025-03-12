@@ -1,0 +1,13 @@
+# Étape 1 : Mise à jour et installation des paquets nécessaires
+- name: Mettre à jour les paquets
+  apt:
+    update_cache: yes
+    upgrade: yes
+
+- name: Installer les dépendances nécessaires
+  apt:
+    name:
+      - docker.io
+      - docker-compose
+      - python3-pip
+    state: present
