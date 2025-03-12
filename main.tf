@@ -15,6 +15,8 @@ module "monitoring" {
 
 module "nocodb" {
   source = "./NocoDB"
+  ssh_key_file = var.ssh_key_file
+  ssh_user     = var.ssh_user
 }
 
 module "storage" {
