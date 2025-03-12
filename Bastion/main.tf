@@ -13,9 +13,9 @@ resource "null_resource" "clear_ssh_known_hosts" {
   provisioner "local-exec" {
     command = "ssh-keygen -f ~/.ssh/known_hosts -R ${google_compute_address.static_ip_bastion.address}"
   }
-  
+
   triggers = {
-    always_run = "${timestamp()}"  # Force l'exécution à chaque `terraform apply`
+    always_run = "${timestamp()}" # Force l'exécution à chaque `terraform apply`
   }
 }
 
@@ -64,7 +64,7 @@ resource "google_compute_firewall" "bastion_firewall" { #Configuration du firewa
   }
 
   source_ranges = ["0.0.0.0/0"] # Qui a accès à la VM
-  target_tags   = ["bastion"] #Accessible uniquement par ceux ayant le tag
+  target_tags   = ["bastion"]   #Accessible uniquement par ceux ayant le tag
 }
 
 output "instance_ip" {
@@ -73,7 +73,7 @@ output "instance_ip" {
 }
 
 resource "local_file" "ansible_inventory" { # Création du fichier d'inventaire pour Ansible
-  content = <<EOT
+  content  = <<EOT
 [servers]
 bastion-instance ansible_host=${google_compute_address.static_ip_bastion.address}
 

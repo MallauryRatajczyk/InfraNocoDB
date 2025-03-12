@@ -1,4 +1,3 @@
-
 # Local .terraform directories
 **/.terraform/*
 
@@ -36,4 +35,3 @@ terraform.rc
 
 # Ignore lock file
 .terraform.lock.hcl
-

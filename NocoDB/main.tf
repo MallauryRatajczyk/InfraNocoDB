@@ -13,9 +13,9 @@ resource "null_resource" "clear_ssh_known_hosts" {
   provisioner "local-exec" {
     command = "ssh-keygen -f ~/.ssh/known_hosts -R ${google_compute_address.static_ip_nocodb.address}"
   }
-  
+
   triggers = {
-    always_run = "${timestamp()}"  # Force l'exécution à chaque `terraform apply`
+    always_run = "${timestamp()}" # Force l'exécution à chaque `terraform apply`
   }
 }
 
@@ -28,8 +28,8 @@ resource "google_compute_instance" "nocodb-instance" { #Création d'une VM pour 
   tags         = ["node-exporter", "custom-port"] #Les tags pour le réseau
 
   metadata = {
-    # 🔹 Utilisation d'une clé SSH persistante (au lieu d'en générer une à chaque `terraform apply`)
-    ssh-keys = "engineer:${file("~/.ssh/id_rsa.pub")}"
+    # Utilisation d'une clé SSH persistante (au lieu d'en générer une à chaque `terraform apply`)
+    ssh-keys = "${var.ansible_user}:${file("${var.ssh_key_file}.pub")}"
   }
 
   boot_disk { #C'est de ce disque que la VM démarre
@@ -62,7 +62,6 @@ resource "google_compute_instance" "nocodb-instance" { #Création d'une VM pour 
 #     protocol = "tcp"
 #     ports    = ["32222", "5432", "9100"]
 #   }
-
 #   source_ranges = ["34.155.139.235/32", "0.0.0.0/0"] # Seul le reverse proxy peut y accéder
 # }
 resource "google_compute_firewall" "allow_node_exporter" {
@@ -91,14 +90,13 @@ resource "google_compute_firewall" "allow_custom_port" {
   target_tags   = ["custom-port"]
 }
 
-
 output "instance_ip" {
   value       = google_compute_address.static_ip_nocodb.address
   description = "Adresse IP publique de la VM"
 }
 
 resource "local_file" "ansible_inventory" { # Création du fichier d'inventaire pour Ansible
-  content = <<EOT
+  content  = <<EOT
 [servers]
 nocodb-instance ansible_host=${google_compute_address.static_ip_nocodb.address}
 

@@ -1,0 +1,31 @@
+stages:
+  - validate
+  - test
+  - build
+  - deploy
+  - cleanup
+
+include:
+  - template: 'Terraform/Base.gitlab-ci.yml'
+
+fmt:
+  extends: .terraform:fmt
+  needs: []
+
+validate:
+  extends: .terraform:validate
+  needs: []
+
+build:
+  extends: .terraform:build
+  environment:
+    name: $TF_STATE_NAME
+    action: prepare
+
+deploy:
+  extends: .terraform:deploy
+  dependencies:
+    - build
+  environment:
+    name: $TF_STATE_NAME
+    action: start
