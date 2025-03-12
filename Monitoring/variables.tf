@@ -16,6 +16,7 @@ variable "ci_runner_instance_type" {
   type    = string
   default = "e2-medium"
 }
+
 variable "gcp_hostname" {
   type    = string
   default = "monitoring.local"
