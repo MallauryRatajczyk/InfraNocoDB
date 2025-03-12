@@ -2,7 +2,6 @@ provider "google" {
   project = var.gcp_project
   region  = var.gcp_region
   zone    = var.gcp_zone
-  # credentials = file("/mnt/c/Users/dauff/OneDrive/Bureau/project-quickdata-399be628e539.jso")
 }
 
 ##########################################
@@ -51,7 +50,7 @@ resource "google_sql_user" "users" {
 ##########################################
 # Bucket for store dump
 resource "google_storage_bucket" "my_bucket" {
-  name          = "rocket-storage-bucket-name"
+  name          = var.dump_bucket
   location      = var.gcp_region
   storage_class = "COLDLINE" #Type de stockage (STANDARD, NEARLINE, COLDLINE, etc.) pourquoi codline a rajouter au dossier
 
@@ -62,15 +61,15 @@ resource "google_storage_bucket" "my_bucket" {
 
 # TOPIC PUB/SUB for trigger
 resource "google_pubsub_topic" "pg_dump_topic" {
-  name = "pg-dump-topic"
+  name = var.topic
 }
 
 resource "google_cloud_scheduler_job" "pg_dump_schedule" { #Définit une ressource Cloud Scheduler Job qui planifie une tâche récurrente.
-  name        = "pg-dump-schedule"
-  description = "Scheduled job to trigger PostgreSQL dump" #déclenche un dump PostgreSQL.
-  schedule    = "0 2 * * *"                                # Tous les jours à 2h du matin
-  time_zone   = "Europe/Paris"
-  region      = "europe-west2"
+  name        = var.scheduler_job.name
+  description = "Scheduled job to trigger PostgreSQL dump"
+  schedule    = var.scheduler_job.schedule
+  time_zone   = var.scheduler_job.time_zone
+  region      = var.scheduler_job.region
 
   pubsub_target {
     topic_name = google_pubsub_topic.pg_dump_topic.id #Définit une ressource Pub/Sub Topic nommée pg_dump_topic.
@@ -80,31 +79,31 @@ resource "google_cloud_scheduler_job" "pg_dump_schedule" { #Définit une ressour
 
 # Bucket for storage of python file
 resource "google_storage_bucket" "function_bucket" {
-  name     = "rocket-cloud-function-bucket"
+  name     = var.function_bucket
   location = var.gcp_region
 }
 
 resource "google_storage_bucket_object" "function_code" {
-  name   = "dump_postgres.zip"
+  name   = var.object_bucket.name
   bucket = google_storage_bucket.function_bucket.name
-  source = "./dump_postgres.zip" # Fichier ZIP contenant le code Python de la fonction
+  source = var.object_bucket.source # Fichier ZIP contenant le code Python de la fonction
 }
 
 resource "google_cloudfunctions2_function" "pg_dump_function" {
-  name        = "pg-dump-function"
+  name        = var.dump_cloud_function.name
   location    = var.gcp_region
   description = "Function for dump"
 
   build_config {
     runtime     = "python310"
-    entry_point = "dump_postgres"
+    entry_point = var.dump_cloud_function.entry_point
     environment_variables = {
       PG_HOST                = google_sql_database_instance.postgres_instance.public_ip_address
       PG_USER                = "${var.user.name}"
       PG_PASSWORD            = "${var.user.name}"
       PG_DB                  = "${var.database.name}"
       BUCKET_NAME            = google_storage_bucket.my_bucket.name
-      GOOGLE_FUNCTION_SOURCE = "dump_postgres.py"
+      GOOGLE_FUNCTION_SOURCE = "${var.dump_cloud_function.file_name}"
     }
     source {
       storage_source {
