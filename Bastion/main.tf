@@ -69,11 +69,6 @@ resource "google_compute_firewall" "bastion_firewall" {
   target_tags   = var.tags      #Accessible uniquement par ceux ayant le tag
 }
 
-output "instance_ip" {
-  value       = google_compute_address.static_ip_bastion.address
-  description = "Adresse IP publique de la VM"
-}
-
 # Création du fichier d'inventaire pour Ansible
 resource "local_file" "ansible_inventory" {
   content  = <<EOT
