@@ -1,0 +1,30 @@
+# Étape 2 : Vérifier et formater le disque persistant s'il n'est pas encore formaté
+
+- name: Monter le disque
+  mount:
+    path: /mnt/monitoring-data
+    src: /dev/disk/by-id/google-monitoring-data-disk
+    fstype: ext4
+    opts: defaults
+    state: mounted
+
+- name: Vérifier si le disque est monté
+  shell: lsblk | grep monitoring-data-disk
+  register: disk_check
+  ignore_errors: true
+
+- name: Formater le disque si nécessaire
+  shell: mkfs.ext4 /dev/disk/by-id/google-monitoring-data-disk
+  when: disk_check.rc != 0
+
+- name: Créer le répertoire de stockage
+  file:
+    path: /mnt/monitoring-data
+    state: directory
+    mode: '0755'
+
+- name: Ajouter le disque au fichier /etc/fstab pour montage automatique au démarrage
+  lineinfile:
+    path: /etc/fstab
+    line: "/dev/disk/by-id/google-monitoring-data-disk /mnt/monitoring-data ext4 defaults 0 2"
+    state: present

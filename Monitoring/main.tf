@@ -13,6 +13,15 @@ resource "google_compute_address" "static_ip_monitoring" { #Créer une IP Statiq
   }
 
 }
+resource "null_resource" "clear_ssh_known_hosts" {
+  provisioner "local-exec" {
+    command = "ssh-keygen -f ~/.ssh/known_hosts -R ${google_compute_address.static_ip_monitoring.address}"
+  }
+
+  triggers = {
+    always_run = "${timestamp()}"  # Force l'exécution à chaque terraform apply
+  }
+}
 
 # Définir le réseau et la sous-réseau pour l'instance
 # resource "google_compute_network" "default" {
@@ -165,6 +174,6 @@ resource "google_compute_firewall" "allow_http_https_ssh" { #Configuration du fi
  EOT
 
  #ansible_user est le nom d'utilisateur par défaut de la VM
-   filename = "Ansible/inventory.ini"
+   filename = "Monitoring/Ansible/inventory.ini"
  }
 
