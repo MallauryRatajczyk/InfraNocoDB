@@ -1,0 +1,55 @@
+- name: Installer K3s et kubectl avec les bonnes permissions
+  shell: curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--write-kubeconfig-mode=644" sh -
+  become: true
+
+- name: Vérifier que K3s est installé et actif
+  systemd:
+    name: k3s
+    state: started
+    enabled: yes
+
+- name: Modifier les permissions du fichier k3s.yaml
+  file:
+    path: /etc/rancher/k3s/k3s.yaml
+    mode: '0644'
+  become: true
+
+- name: Assurer la présence du dossier ~/.kube
+  file:
+    path: /home/{{ ansible_user }}/.kube
+    state: directory
+    mode: '0700'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Copier le fichier de configuration K3s dans ~/.kube/config
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: /home/{{ ansible_user }}/.kube/config
+    remote_src: yes
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+  become: true
+
+- name: Mettre à jour le chemin du serveur dans ~/.kube/config
+  replace:
+    path: /home/{{ ansible_user }}/.kube/config
+    regexp: 'server: https://127.0.0.1:6443' #A vérifier 
+    replace: 'server: https://{{ ansible_host }}:6443' #A vérifier
+
+- name: Définir la variable d'environnement KUBECONFIG
+  lineinfile:
+    path: /home/{{ ansible_user }}/.bashrc
+    line: 'export KUBECONFIG=/home/{{ ansible_user }}/.kube/config'
+    create: yes
+
+- name: Vérifier que kubectl fonctionne
+  command: kubectl get nodes
+  become_user: "{{ ansible_user }}"
+  register: k3s_nodes
+  changed_when: false
+
+- name: Afficher le résultat de kubectl get nodes
+  debug:
+    msg: "{{ k3s_nodes.stdout_lines }}"

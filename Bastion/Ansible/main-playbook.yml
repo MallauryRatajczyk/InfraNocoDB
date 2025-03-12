@@ -1,0 +1,7 @@
+- name: Création du reverse proxy sur GCP pour Bastion
+  hosts: servers
+  become: yes
+  roles:
+    - docker_setup
+    - reverse_proxy
+    - certbot_ssl
