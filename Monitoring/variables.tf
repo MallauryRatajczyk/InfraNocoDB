@@ -30,3 +30,28 @@ variable "ssh_user" {
   type    = string
   default = "jordan.nankoo"
 }
+
+variable "static_ip" {
+  type    = string
+  default = "static-ip-monitoring"
+}
+
+variable "instance_name" {
+  type    = string
+  default = "monitoring"
+}
+
+variable "tags" {
+  type    = list(string)
+  default = ["http-server", "https-server"]
+}
+
+variable "disk_name" {
+  type    = string
+  default = "monitoring-data-disk"
+}
+
+variable "firewall" {
+  type    = string
+  default = "jordan-http-https-ssh"
+}
