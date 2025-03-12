@@ -24,10 +24,13 @@ build:
   before_script:
     - mkdir .ssh
     - echo $CI_KEY_SSH > .ssh/id_rsa.pub
+    - echo "{\nname = \"truc\"\npassword = \"azerty\"" > terraform.tfvars
+    - cat terraform.tfvars
     - echo $CI_TERRAFORM_USER
   script:
-    - gitlab-terraform plan -var 'user=$CI_TERRAFORM_USER' -var 'ssh_user=$CI_USER_SSH'
-    - gitlab-terraform plan-json
+    - ""
+#    - gitlab-terraform plan -var 'user=$CI_TERRAFORM_USER' -var 'ssh_user=$CI_USER_SSH'
+#    - gitlab-terraform plan-json
 
 deploy:
   extends: .terraform:deploy
