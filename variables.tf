@@ -1,5 +1,6 @@
 variable "ssh_key_file" {
-  type = string
+  type    = string
+  default = ".ssh/id_rsa"
 }
 
 variable "ssh_user" {
