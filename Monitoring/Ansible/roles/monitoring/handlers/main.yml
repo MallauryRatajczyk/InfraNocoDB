@@ -1,0 +1,2 @@
+- name: Redémarrer Prometheus et Postgres Exporter
+  command: docker-compose -f /home/jordan.nankoo/monitoring/docker-compose.yml down && docker-compose -f /home/jordan.nankoo/monitoring/docker-compose.yml up -d

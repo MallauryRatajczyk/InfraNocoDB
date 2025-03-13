@@ -6,4 +6,4 @@
     #- disk_setup
     - docker_setup
     - monitoring
-    - alerts
+    #- alerts

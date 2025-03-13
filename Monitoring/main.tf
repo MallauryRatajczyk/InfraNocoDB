@@ -23,12 +23,12 @@ resource "null_resource" "clear_ssh_known_hosts" {
 }
 
 # Créer une instance de machine virtuelle (Compute Engine)
-resource "google_compute_instance" "prometheus_grafana_instance" {
+resource "google_compute_instance" "monitoring_instance" {
   name         = "monitoring"                # Remplace par le nom de l'instance souhaitée
   machine_type = var.ci_runner_instance_type # Choisis une taille d'instance adaptée
   zone         = var.gcp_zone                # Remplace par la zone que tu préfères
   hostname     = var.gcp_hostname
-  tags         = ["http-server", "https-server"]
+  tags         = ["monitoring"]              # Tags pour le firewall
 
   boot_disk { #C'est de ce disque que la VM démarre
     initialize_params {
@@ -68,24 +68,24 @@ resource "google_compute_disk" "monitoring_data_disk" { #Créer un disque persis
   name = "monitoring-data-disk"
   type = "pd-standard" # Type du disque : "pd-standard" ou "pd-ssd"
   zone = var.gcp_zone  # Remplace par ta zone GCP
-  size = 50            # Taille en Go
+  size = 20            # Taille en Go
 
   lifecycle { #Empêche terraform de supprimer le disque
     prevent_destroy = true
   }
 }
 
-resource "google_compute_firewall" "allow_http_https_ssh" { #Configuration du firewall
-  name    = "jordan-http-https-ssh"
+resource "google_compute_firewall" "monitoring_firewall" { #Configuration du firewall
+  name    = "monitoring-firewall"
   network = "default"
 
   allow {
     protocol = "tcp"
-    ports    = ["80", "443", "8080", "22", "3000", "9090"] #8080 a enlevé une fois le reverse proxy de configurer
+    ports    = ["80", "443", "8080", "22", "3000", "9090", "9187"] #8080 a enlevé une fois le reverse proxy de configurer
   }
 
   source_ranges = ["0.0.0.0/0"]                   # Qui a accès à la VM
-  target_tags   = ["http-server", "https-server"] #accessible uniquement par ceux ayant le tag
+  target_tags   = ["monitoring"] #accessible uniquement par ceux ayant le tag
 }
 
 output "instance_ip" {

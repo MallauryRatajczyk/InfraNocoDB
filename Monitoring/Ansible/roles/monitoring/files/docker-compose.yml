@@ -29,6 +29,19 @@ services:
     networks:
       - monitoring
 
+
+  postgres-exporter:
+    image: wrouesnel/postgres_exporter
+    container_name: postgres-exporter
+    ports:
+      - "9187:9187"
+    environment:
+      DATA_SOURCE_NAME: "postgres://yohann:azerty@34.155.233.126:5432/mydatabase"
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+
 volumes:
   prometheus_data:
   grafana_data:
