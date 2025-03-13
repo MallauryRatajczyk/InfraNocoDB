@@ -46,15 +46,21 @@ module "storage" {
   database = {
     name     = "${terraform.workspace}-mydatabase"
     instance = "${terraform.workspace}-my-postgres-db"
+    version  = "POSTGRES_15"
   }
   dump_bucket = "${terraform.workspace}-rocket-storage-bucket-name"
   topic       = "${terraform.workspace}-pg-dump-topic"
   scheduler_job = {
-    name = "${terraform.workspace}-pg-dump-schedule"
+    name      = "${terraform.workspace}-pg-dump-schedule"
+    schedule  = "0 2 * * *"
+    time_zone = "Europe/Paris"
+    region    = "europe-west2"
   }
   function_bucket = "${terraform.workspace}-rocket-cloud-function-bucket"
   dump_cloud_function = {
-    name = "${terraform.workspace}-pg-dump-function"
+    name        = "${terraform.workspace}-pg-dump-function"
+    entry_point = "dump_postgres"
+    file_name   = "dump_postgres.py"
   }
   user = var.user
 }
