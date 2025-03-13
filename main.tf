@@ -1,3 +1,4 @@
+
 module "bastion" {
   source = "./Bastion"
 
@@ -33,4 +34,22 @@ module "nocodb" {
 module "storage" {
   source = "./Storage"
   user   = var.user
+}
+
+# [START storage_remote_backend_local_file]
+resource "local_file" "backend" {
+  file_permission = "0644"
+  filename        = "${path.module}/backend.tf"
+
+  # You can store the template in a file and use the templatefile function for
+  # more modularity, if you prefer, instead of storing the template inline as
+  # we do here.
+  content = <<-EOT
+  terraform {
+    backend "gcs" {
+      bucket = "${module.storage.storage_bucket_name}"
+      prefix = "${terraform.workspace}"
+    }
+  }
+  EOT
 }
