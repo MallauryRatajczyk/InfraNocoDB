@@ -22,10 +22,22 @@ variable "hostname" {
 }
 variable "ansible_user" {
   type    = string
-  default = "Mallaury"
+  default = "mallaury_ratajczyk"
 }
 
 variable "ssh_key_file" {
   type    = string
   default = "~/.ssh/google_compute_engine"
+}
+
+variable "vpc_name" {
+  description = "Nom du réseau VPC"
+  type        = string
+  default     = "rocketvpc"  
+}
+
+variable "subnet_nocodb" {
+  description = "Nom du sous-réseau de NocoDB"
+  type        = string
+  default     = "subnet-nocodb"  
 }

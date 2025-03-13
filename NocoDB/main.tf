@@ -2,68 +2,73 @@ provider "google" {
   project = var.gcp_project
   region  = var.gcp_region
 }
+ resource "null_resource" "clear_ssh_known_hosts" {
+   provisioner "local-exec" {
+     command = "ssh-keygen -f ~/.ssh/known_hosts -R ${google_compute_address.static_ip_bastion.address}"
+   }
+   triggers = {
+     always_run = "${timestamp()}" # Force l'exécution à chaque `terraform apply`
+   }
+ }
 
 resource "google_compute_address" "static_ip_nocodb" { #Créer une IP Statique
   name   = "static-ip-nocodb"
   region = var.gcp_region
 }
 
-# 🔹 Supprime l'ancienne clé SSH pour éviter l'erreur `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`
-resource "null_resource" "clear_ssh_known_hosts" {
-  provisioner "local-exec" {
-    command = "ssh-keygen -f ~/.ssh/known_hosts -R ${google_compute_address.static_ip_nocodb.address}"
-  }
-
-  triggers = {
-    always_run = "${timestamp()}" # Force l'exécution à chaque `terraform apply`
-  }
-}
-
-resource "google_compute_instance" "nocodb-instance" { #Création d'une VM pour héberger NocoDB
+resource "google_compute_instance" "nocodb-instance" {
   name         = "nocodb-instance"
   hostname     = var.hostname
   machine_type = var.ci_runner_instance_type
   project      = var.gcp_project
   zone         = var.gcp_zone
-  tags         = ["node-exporter", "custom-port"] #Les tags pour le réseau
-
+  tags         = ["gcp-ssh", "nocodb"]
   metadata = {
-    # Utilisation d'une clé SSH persistante (au lieu d'en générer une à chaque `terraform apply`)
     ssh-keys = "${var.ansible_user}:${file("${var.ssh_key_file}.pub")}"
   }
 
-  boot_disk { #C'est de ce disque que la VM démarre
+  boot_disk {
     initialize_params {
       image = "debian-cloud/debian-12-bookworm-v20250212"
       size  = 20
       type  = "pd-standard"
-    } # On peut ajouter d'autres disques pour stocker les données
-  }
-
-  network_interface {
-    network = "default"
-    access_config {
-      // Si vide, IP aléatoire mais crée automatiquement
-      nat_ip = google_compute_address.static_ip_nocodb.address #Utilise l'IP statique définit plus haut
     }
   }
 
-  /* scheduling {
-      preemptible       = true
-      automatic_restart = false
-    }*/ #Permet si activé de fermer automatiquement la VM si les ressources sont demandées ailleurs et de ne pas redémarrer automatiquement
+  network_interface {
+    network    = var.vpc_name 
+    subnetwork = var.subnet_nocodb
+    access_config {
+      nat_ip = google_compute_address.nocodb_ip.address
+    }
+  }
 }
 
-# resource "google_compute_firewall" "allow_reverse_proxy" { #Configuration du firewall
-#   name    = "allow-reverse-proxy"
-#   network = "default"
+ resource "google_compute_firewall" "allow_gcp_ssh2" {
+    name    = "allow-gcp-ssh2"
+    network = var.vpc_name
+    allow {
+      protocol = "tcp"
+      ports    = ["22"]  # Ouverture du port SSH (22)
+    }
 
-#   allow {
-#     protocol = "tcp"
-#     ports    = ["32222", "5432", "9100"]
-#   }
-#   source_ranges = ["34.155.139.235/32", "0.0.0.0/0"] # Seul le reverse proxy peut y accéder
-# }
+    source_ranges = ["35.235.240.0/20", "34.163.198.254/32"]
+    target_tags   = ["gcp-ssh"]
+  }
+
+resource "google_compute_firewall" "allow_ssh_from_bastion" {
+  name    = "allow-ssh-from-bastion"
+  network = var.vpc_name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22", "65535"]
+  }
+
+  source_ranges = ["10.10.2.0/24"]  # Plage IP de Bastion
+  target_tags   = ["nocodb"]  # Tag de la VM NocoDB
+}
+
 resource "google_compute_firewall" "allow_node_exporter" {
   name    = "allow-node-exporter"
   network = "default"
@@ -77,8 +82,8 @@ resource "google_compute_firewall" "allow_node_exporter" {
   target_tags   = ["node-exporter"]
 }
 
-resource "google_compute_firewall" "allow_custom_port" {
-  name    = "allow-custom-port"
+resource "google_compute_firewall" "allow_proxy_port" {
+  name    = "allow-proxy-port"
   network = "default"
 
   allow {
@@ -87,23 +92,17 @@ resource "google_compute_firewall" "allow_custom_port" {
   }
 
   source_ranges = ["34.155.139.235/32"]
-  target_tags   = ["custom-port"]
+  target_tags   = ["proxy-port"]
 }
-
-output "instance_ip" {
-  value       = google_compute_address.static_ip_nocodb.address
-  description = "Adresse IP publique de la VM"
-}
-
-resource "local_file" "ansible_inventory" { # Création du fichier d'inventaire pour Ansible
+resource "local_file" "ansible_inventory" {
   content  = <<EOT
 [servers]
-nocodb-instance ansible_host=${google_compute_address.static_ip_nocodb.address}
+nocodb-instance ansible_host=${google_compute_instance.nocodb-instance.network_interface.0.network_ip}
 
 [all:vars]
 ansible_user=engineer
 ansible_ssh_private_key_file=${var.ssh_key_file}
-ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="gcloud compute ssh --project project-quickdata --zone europe-west9-b --tunnel-through-iap --ssh-flag=-A --ssh-flag=-oStrictHostKeyChecking=no --ssh-flag=-oUserKnownHostsFile=/dev/null engineer@nocodb-instance"'
 EOT
   filename = "Ansible/inventory.ini"
 }

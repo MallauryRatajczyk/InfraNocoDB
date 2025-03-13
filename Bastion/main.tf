@@ -2,21 +2,19 @@ provider "google" {
   project = var.gcp_project
   region  = var.gcp_region
 }
-
-resource "google_compute_address" "static_ip_bastion" { #Créer une IP Statique
-  name   = "static-ip-bastion"
-  region = var.gcp_region
-}
-
 # 🔹 Supprime l'ancienne clé SSH pour éviter l'erreur `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!`
 resource "null_resource" "clear_ssh_known_hosts" {
   provisioner "local-exec" {
     command = "ssh-keygen -f ~/.ssh/known_hosts -R ${google_compute_address.static_ip_bastion.address}"
   }
-
   triggers = {
     always_run = "${timestamp()}" # Force l'exécution à chaque `terraform apply`
   }
+}
+
+resource "google_compute_address" "static_ip_bastion" { #Créer une IP Statique
+  name   = "static-ip-bastion"
+  region = var.gcp_region
 }
 
 resource "google_compute_instance" "bastion-instance" { #Création d'une VM pour héberger NocoDB
@@ -26,46 +24,40 @@ resource "google_compute_instance" "bastion-instance" { #Création d'une VM pour
   project      = var.gcp_project
   zone         = var.gcp_zone
   tags         = ["bastion"] #Les tags pour le réseau
-
+  allow_stopping_for_update = true
   metadata = {
-    # 🔹 Utilisation d'une clé SSH persistante (au lieu d'en générer une à chaque `terraform apply`)
-    ssh-keys = "engineer:${file("${var.ssh_key_file}.pub")}"
+    ssh-keys = "${var.ansible_user}:${file("${var.ssh_key_file}.pub")}"
   }
 
-  boot_disk { #C'est de ce disque que la VM démarre
+  boot_disk { 
     initialize_params {
       image = "debian-cloud/debian-12-bookworm-v20250212"
       size  = 20
       type  = "pd-standard"
-    } # On peut ajouter d'autres disques pour stocker les données
+    } 
   }
 
   network_interface {
-    network = "default"
+    network    = var.vpc_name  
+    subnetwork = var.subnet_bastion
     access_config {
-      // Si vide, IP aléatoire mais crée automatiquement
-      nat_ip = google_compute_address.static_ip_bastion.address #Utilise l'IP statique définit plus haut
+      nat_ip = google_compute_address.static_ip_bastion.address 
     }
   }
-
-  /* scheduling {
-      preemptible       = true
-      automatic_restart = false
-    }*/ #Permet si activé de fermer automatiquement la VM si les ressources sont demandées ailleurs et de ne pas redémarrer automatiquement
 }
 
-resource "google_compute_firewall" "bastion_firewall" { #Configuration du firewall
-  name    = "allow-bastion"
-  network = "default"
+ resource "google_compute_firewall" "bastion_firewall" { #Configuration du firewall
+   name    = "allow-bastion"
+   network = var.vpc_name
 
-  allow {
-    protocol = "tcp"
-    ports    = ["80", "443", "22"] #8080 à enlever une fois le reverse proxy configuré
-  }
+   allow {
+     protocol = "tcp"
+     ports    = ["80", "443", "22"] 
+   }
 
-  source_ranges = ["0.0.0.0/0"] # Qui a accès à la VM
-  target_tags   = ["bastion"]   #Accessible uniquement par ceux ayant le tag
-}
+   source_ranges = ["0.0.0.0/0"] # Qui a accès à la VM
+   target_tags   = ["bastion"]   #Accessible uniquement par ceux ayant le tag
+ }
 
 output "instance_ip" {
   value       = google_compute_address.static_ip_bastion.address
