@@ -31,7 +31,7 @@ build:
     - echo " password = \"$PASS\"}" >> terraform.tfvars
     - cat terraform.tfvars
   script:
-    - gitlab-terraform plan -var-file=terraform.tfvars -var 'ssh_user=$CI_USER_SSH'
+    - gitlab-terraform plan -var-file=terraform.tfvars -var 'ssh_user=$CI_USER_SSH' -var 'ssh_key_file=.ssh/ssh_key'
     - gitlab-terraform plan-json
 
 deploy:
