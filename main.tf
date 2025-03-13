@@ -1,5 +1,5 @@
 locals {
-  network = "${terraform.workspace}-network"
+  network = "default" #"${terraform.workspace}-network"
 }
 
 module "bastion" {
@@ -8,9 +8,11 @@ module "bastion" {
   instance_name = "${terraform.workspace}-bastion-instance"
   static_ip     = "${terraform.workspace}-static-ip-bastion"
   network       = local.network
-
-  ssh_key_file = var.ssh_key_file
-  ssh_user     = var.ssh_user
+  firewall      = "${terraform.workspace}-allow-bastion"
+  nocodb        = module.nocodb.nocodb_instance_ip
+  monitoring    = module.monitoring.monitoring_instance_ip
+  ssh_key_file  = var.ssh_key_file
+  ssh_user      = var.ssh_user
 }
 
 module "monitoring" {
@@ -35,6 +37,17 @@ module "nocodb" {
   static_ip = "${terraform.workspace}-static-ip-nocodb"
   disk_name = "${terraform.workspace}-monitoring-data-disk"
   network   = local.network
+  firewall = [{
+    name          = "${terraform.workspace}-allow-node-exporter"
+    tags          = ["node-exporter"]
+    source_ranges = ["34.163.103.61/32"]
+    ports         = ["9100"]
+    }, {
+    name          = "${terraform.workspace}-allow-custom-port"
+    tags          = ["custom-port"]
+    source_ranges = ["34.155.139.235/32"]
+    ports         = ["32222"]
+  }]
 
   ssh_key_file = var.ssh_key_file
   ssh_user     = var.ssh_user
@@ -57,6 +70,10 @@ module "storage" {
     region    = "europe-west2"
   }
   function_bucket = "${terraform.workspace}-rocket-cloud-function-bucket"
+  object_bucket = {
+    name   = "dump_postgres.zip"
+    source = "./Storage/dump_postgres.zip"
+  }
   dump_cloud_function = {
     name        = "${terraform.workspace}-pg-dump-function"
     entry_point = "dump_postgres"

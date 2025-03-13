@@ -96,5 +96,5 @@ resource "local_file" "ansible_inventory" { #Créer un fichier inventory.ini pou
  EOT
 
   #ansible_user est le nom d'utilisateur par défaut de la VM
-  filename = "Monitoring/Ansible/inventory.ini"
+  filename = "${path.module}/Ansible/inventory.ini"
 }

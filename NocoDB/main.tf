@@ -98,5 +98,5 @@ ansible_user=${var.ssh_user}
 ansible_ssh_private_key_file=${var.ssh_key_file}
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
 EOT
-  filename = "Ansible/inventory.ini"
+  filename = "${path.module}/Ansible/inventory.ini"
 }

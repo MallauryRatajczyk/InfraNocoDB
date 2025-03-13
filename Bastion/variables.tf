@@ -57,3 +57,13 @@ variable "network" {
   type    = string
   default = "default"
 }
+
+variable "nocodb" {
+  type    = string
+  default = "34.163.251.126"
+}
+
+variable "monitoring" {
+  type    = string
+  default = "34.163.103.61"
+}
