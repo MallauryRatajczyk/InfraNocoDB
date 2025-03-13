@@ -59,18 +59,14 @@ resource "google_compute_instance" "bastion-instance" { #Création d'une VM pour
    target_tags   = ["bastion"]   #Accessible uniquement par ceux ayant le tag
  }
 
-output "instance_ip" {
-  value       = google_compute_address.static_ip_bastion.address
-  description = "Adresse IP publique de la VM"
-}
-
-resource "local_file" "ansible_inventory" { # Création du fichier d'inventaire pour Ansible
+# Création du fichier d'inventaire pour Ansible
+resource "local_file" "ansible_inventory" {
   content  = <<EOT
 [servers]
 bastion-instance ansible_host=${google_compute_address.static_ip_bastion.address}
 
 [all:vars]
-ansible_user=engineer
+ansible_user=${var.ssh_user}
 ansible_ssh_private_key_file=${var.ssh_key_file}
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
 EOT

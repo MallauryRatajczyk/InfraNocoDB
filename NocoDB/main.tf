@@ -12,7 +12,7 @@ provider "google" {
  }
 
 resource "google_compute_address" "static_ip_nocodb" { #Créer une IP Statique
-  name   = "static-ip-nocodb"
+  name   = var.static_ip
   region = var.gcp_region
 }
 
@@ -70,16 +70,16 @@ resource "google_compute_firewall" "allow_ssh_from_bastion" {
 }
 
 resource "google_compute_firewall" "allow_node_exporter" {
-  name    = "allow-node-exporter"
+  name    = var.firewall[0].name
   network = "default"
 
   allow {
     protocol = "tcp"
-    ports    = ["9100"]
+    ports    = var.firewall[0].ports
   }
 
-  source_ranges = ["34.163.103.61/32"]
-  target_tags   = ["node-exporter"]
+  source_ranges = var.firewall[0].source_ranges
+  target_tags   = var.firewall[0].tags
 }
 
 resource "google_compute_firewall" "allow_proxy_port" {
@@ -88,7 +88,7 @@ resource "google_compute_firewall" "allow_proxy_port" {
 
   allow {
     protocol = "tcp"
-    ports    = ["32222"]
+    ports    = var.firewall[1].ports
   }
 
   source_ranges = ["34.155.139.235/32","10.10.2.2/32"]

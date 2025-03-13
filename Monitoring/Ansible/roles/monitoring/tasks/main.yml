@@ -17,6 +17,7 @@
     dest: /home/{{ ansible_user }}/monitoring/prometheus.yml
     mode: '0644'
 
+
 - name: Copier le fichier des règles d'alerte pour Prometheus
   copy:
     src: ./files/alert_rules.yml
@@ -33,3 +34,26 @@
   command:
     chdir: /home/{{ ansible_user }}/monitoring
     cmd: docker-compose up -d
+  notify: Redémarrer Prometheus et Postgres Exporter
+
+- name: Ajout de la source de données Prometheus
+  grafana_datasource:
+    name: "prometheus"
+    grafana_url: http://{{ ansible_host }}:3000
+    grafana_user: "admin"
+    grafana_password: "admin"
+    org_id: 1
+    ds_type: prometheus
+    ds_url: http://{{ ansible_host }}:9090
+    validate_certs: no  # Si vous avez un certificat SSL auto-signé
+  changed_when: false
+
+- name: Importer un dashboard node exporter
+  grafana_dashboard:
+    grafana_url: "http://{{ ansible_host }}:3000"
+    grafana_user: "admin"
+    grafana_password: "admin"
+    dashboard_id: 1860
+    dashboard_revision: 37
+    state: present
+    validate_certs: no

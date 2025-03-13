@@ -18,7 +18,6 @@ spec:
         env:
         - name: POSTGRES_CONNECTION_STRING
           value: "postgres://yohann:azerty@34.155.233.126:5432/mydatabase"
-
         ports:
         - containerPort: 8080
 ---
