@@ -22,7 +22,7 @@ variable "hostname" {
 }
 variable "ansible_user" {
   type    = string
-  default = "mallaury_ratajczyk"
+  default = "engineer"
 }
 
 variable "ssh_key_file" {
