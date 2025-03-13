@@ -1,11 +1,16 @@
+locals {
+  network = "${terraform.workspace}-network"
+}
 
 module "bastion" {
   source = "./Bastion"
 
   instance_name = "${terraform.workspace}-bastion-instance"
   static_ip     = "${terraform.workspace}-static-ip-bastion"
-  ssh_key_file  = var.ssh_key_file
-  ssh_user      = var.ssh_user
+  network       = local.network
+
+  ssh_key_file = var.ssh_key_file
+  ssh_user     = var.ssh_user
 }
 
 module "monitoring" {
@@ -14,8 +19,10 @@ module "monitoring" {
   instance_name = "${terraform.workspace}-monitoring-instance"
   static_ip     = "${terraform.workspace}-static-ip-monitoring"
   disk_name     = "${terraform.workspace}-monitoring-data-disk"
-  ssh_key_file  = var.ssh_key_file
-  ssh_user      = var.ssh_user
+  network       = local.network
+
+  ssh_key_file = var.ssh_key_file
+  ssh_user     = var.ssh_user
 }
 
 module "nocodb" {
@@ -25,21 +32,37 @@ module "nocodb" {
     name  = "${terraform.workspace}-nocodb"
     count = (terraform.workspace == "production") ? 2 : 1
   }
-  static_ip    = "${terraform.workspace}-static-ip-nocodb"
-  disk_name    = "${terraform.workspace}-monitoring-data-disk"
+  static_ip = "${terraform.workspace}-static-ip-nocodb"
+  disk_name = "${terraform.workspace}-monitoring-data-disk"
+  network   = local.network
+
   ssh_key_file = var.ssh_key_file
   ssh_user     = var.ssh_user
 }
 
 module "storage" {
   source = "./Storage"
-  user   = var.user
+
+  database = {
+    name     = "${terraform.workspace}-mydatabase"
+    instance = "${terraform.workspace}-my-postgres-db"
+  }
+  dump_bucket = "${terraform.workspace}-rocket-storage-bucket-name"
+  topic       = "${terraform.workspace}-pg-dump-topic"
+  scheduler_job = {
+    name = "${terraform.workspace}-pg-dump-schedule"
+  }
+  function_bucket = "${terraform.workspace}-rocket-cloud-function-bucket"
+  dump_cloud_function = {
+    name = "${terraform.workspace}-pg-dump-function"
+  }
+  user = var.user
 }
 
 # [START storage_remote_backend_local_file]
 resource "local_file" "backend" {
   file_permission = "0644"
-  filename        = "${path.module}/backend.tf"
+  filename        = "./backend.tf"
 
   # You can store the template in a file and use the templatefile function for
   # more modularity, if you prefer, instead of storing the template inline as

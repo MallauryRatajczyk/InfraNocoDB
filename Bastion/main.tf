@@ -42,7 +42,7 @@ resource "google_compute_instance" "bastion-instance" {
   }
 
   network_interface {
-    network = "default"
+    network = var.network
     access_config {
       // Si vide, IP aléatoire mais crée automatiquement
       nat_ip = google_compute_address.static_ip_bastion.address #Utilise l'IP statique définit plus haut
@@ -58,7 +58,7 @@ resource "google_compute_instance" "bastion-instance" {
 # Configuration du firewall
 resource "google_compute_firewall" "bastion_firewall" {
   name    = var.firewall
-  network = "default"
+  network = var.network
 
   allow {
     protocol = "tcp"

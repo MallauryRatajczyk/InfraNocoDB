@@ -73,3 +73,8 @@ variable "firewall" {
     ports         = ["32222"]
   }]
 }
+
+variable "network" {
+  type    = string
+  default = "default"
+}

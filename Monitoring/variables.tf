@@ -56,3 +56,7 @@ variable "firewall" {
   type    = string
   default = "jordan-http-https-ssh"
 }
+
+variable "network" {
+  default = "default"
+}

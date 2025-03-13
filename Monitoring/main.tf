@@ -41,7 +41,7 @@ resource "google_compute_instance" "prometheus_grafana_instance" {
   }
 
   network_interface {
-    network = "default"
+    network = var.network
     access_config {
       // Si vide, IP aléatoire mais crée automatiquement
       nat_ip = google_compute_address.static_ip_monitoring.address
@@ -74,7 +74,7 @@ resource "google_compute_disk" "monitoring_data_disk" {
 
 resource "google_compute_firewall" "allow_http_https_ssh" { #Configuration du firewall
   name    = var.firewall
-  network = "default"
+  network = var.network
 
   allow {
     protocol = "tcp"
@@ -83,11 +83,6 @@ resource "google_compute_firewall" "allow_http_https_ssh" { #Configuration du fi
 
   source_ranges = ["0.0.0.0/0"] # Qui a accès à la VM
   target_tags   = var.tags      # accessible uniquement par ceux ayant le tag
-}
-
-output "instance_ip" {
-  value       = google_compute_address.static_ip_monitoring.address
-  description = "Adresse IP publique de la VM"
 }
 
 resource "local_file" "ansible_inventory" { #Créer un fichier inventory.ini pour Ansible

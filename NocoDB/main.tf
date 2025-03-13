@@ -43,7 +43,7 @@ resource "google_compute_instance" "nocodb-instance" {
   }
 
   network_interface {
-    network = "default"
+    network = var.network
     access_config {
       // Si vide, IP aléatoire mais crée automatiquement
       nat_ip = google_compute_address.static_ip_nocodb.address
@@ -58,7 +58,7 @@ resource "google_compute_instance" "nocodb-instance" {
 
 resource "google_compute_firewall" "allow_node_exporter" {
   name    = var.firewall[0].name
-  network = "default"
+  network = var.network
 
   allow {
     protocol = "tcp"
@@ -71,7 +71,7 @@ resource "google_compute_firewall" "allow_node_exporter" {
 
 resource "google_compute_firewall" "allow_custom_port" {
   name    = var.firewall[1].name
-  network = "default"
+  network = var.network
 
   allow {
     protocol = "tcp"

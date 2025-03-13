@@ -52,3 +52,8 @@ variable "firewall" {
   type    = string
   default = "allow-bastion"
 }
+
+variable "network" {
+  type    = string
+  default = "default"
+}
