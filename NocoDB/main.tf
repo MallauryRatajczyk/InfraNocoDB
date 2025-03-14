@@ -97,6 +97,7 @@ nocodb-instance ansible_host=${google_compute_address.static_ip_nocodb.address}
 ansible_user=${var.ssh_user}
 ansible_ssh_private_key_file=${var.ssh_key_file}
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+ansible_database_ip=${var.database_ip}
 EOT
   filename = "${path.module}/Ansible/inventory.ini"
 }

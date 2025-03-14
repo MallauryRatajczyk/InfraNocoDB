@@ -78,3 +78,8 @@ variable "network" {
   type    = string
   default = "default"
 }
+
+variable "database_ip" {
+  type    = string
+  default = "34.155.233.126"
+}

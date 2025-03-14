@@ -49,6 +49,7 @@ module "nocodb" {
     source_ranges = ["34.155.139.235/32"]
     ports         = ["32222"]
   }]
+  database_ip   = module.storage.storage_instance_ip
 
   ssh_key_file = var.ssh_key_file
   ssh_user     = var.ssh_user
