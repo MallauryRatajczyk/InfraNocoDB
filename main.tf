@@ -40,13 +40,13 @@ module "nocodb" {
   network   = local.network
   firewall = [{
     name          = "${terraform.workspace}-allow-node-exporter"
-    tags          = ["node-exporter"]
-    source_ranges = ["34.163.103.61/32"]
+    tags          = ["${terraform.workspace}-node-exporter"]
+    source_ranges = ["${module.monitoring.monitoring_instance_ip}/32"]
     ports         = ["9100"]
     }, {
     name          = "${terraform.workspace}-allow-custom-port"
-    tags          = ["custom-port"]
-    source_ranges = ["34.155.139.235/32"]
+    tags          = ["${terraform.workspace}-custom-port"]
+    source_ranges = ["${module.bastion.bastion_instance_ip}/32"]
     ports         = ["32222"]
   }]
   database_ip   = module.storage.storage_instance_ip
