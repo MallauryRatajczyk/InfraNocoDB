@@ -41,3 +41,10 @@ deploy:
   environment:
     name: $TF_STATE_NAME
     action: start
+  rules:
+    - if: $CI_COMMIT_BRANCH == "prod" || $CI_COMMIT_BRANCH == "preprod"
+      when: manual
+    - when: never
+
+cleanup:
+  extends: .terraform:destroy
