@@ -3,18 +3,18 @@
 - name: Monter le disque
   mount:
     path: /mnt/monitoring-data
-    src: /dev/disk/by-id/google-monitoring-data-disk
+    src: /dev/disk/by-id/google-{{ ansible_disk_name }}
     fstype: ext4
     opts: defaults
     state: mounted
 
 - name: Vérifier si le disque est monté
-  shell: lsblk | grep monitoring-data-disk
+  shell: lsblk | grep {{ ansible_disk_name }}
   register: disk_check
   ignore_errors: true
 
 - name: Formater le disque si nécessaire
-  shell: mkfs.ext4 /dev/disk/by-id/google-monitoring-data-disk
+  shell: mkfs.ext4 /dev/disk/by-id/google-{{ ansible_disk_name }}
   when: disk_check.rc != 0
 
 - name: Créer le répertoire de stockage
@@ -26,5 +26,5 @@
 - name: Ajouter le disque au fichier /etc/fstab pour montage automatique au démarrage
   lineinfile:
     path: /etc/fstab
-    line: "/dev/disk/by-id/google-monitoring-data-disk /mnt/monitoring-data ext4 defaults 0 2"
+    line: "/dev/disk/by-id/google-{{ ansible_disk_name }} /mnt/monitoring-data ext4 defaults 0 2"
     state: present

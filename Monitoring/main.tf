@@ -93,6 +93,9 @@ resource "local_file" "ansible_inventory" { #Créer un fichier inventory.ini pou
  [all:vars]
  ansible_user=${var.ssh_user}
  ansible_ssh_private_key_file=${var.ssh_key_file}
+ ansible_disk_name=${var.disk_name}
+ ansible_nocodb_ip=${var.nocodb}
+ ansible_database_ip=${var.database_ip}
  EOT
 
   #ansible_user est le nom d'utilisateur par défaut de la VM

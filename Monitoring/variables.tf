@@ -60,3 +60,13 @@ variable "firewall" {
 variable "network" {
   default = "default"
 }
+
+variable "nocodb" {
+  type    = string
+  default = "34.163.251.126"
+}
+
+variable "database_ip" {
+  type    = string
+  default = "34.155.233.126"
+}
