@@ -11,6 +11,7 @@ module "bastion" {
   firewall      = "${terraform.workspace}-allow-bastion"
   nocodb        = module.nocodb.nocodb_instance_ip
   monitoring    = module.monitoring.monitoring_instance_ip
+  dns           = (terraform.workspace == "production") ? rocketlacapsule.ddns.net : ""
   ssh_key_file  = var.ssh_key_file
   ssh_user      = var.ssh_user
 }
@@ -49,7 +50,7 @@ module "nocodb" {
     source_ranges = ["${module.bastion.bastion_instance_ip}/32"]
     ports         = ["32222"]
   }]
-  database_ip   = module.storage.storage_instance_ip
+  database_ip = module.storage.storage_instance_ip
 
   ssh_key_file = var.ssh_key_file
   ssh_user     = var.ssh_user

@@ -39,18 +39,18 @@
 - name: Ajout de la source de données Prometheus
   grafana_datasource:
     name: "prometheus"
-    grafana_url: http://{{ ansible_host }}:3000
+    grafana_url: "grafana:3000"
     grafana_user: "admin"
     grafana_password: "admin"
     org_id: 1
     ds_type: prometheus
-    ds_url: http://{{ ansible_host }}:9090
+    ds_url: "prometheus:9090"
     validate_certs: no  # Si vous avez un certificat SSL auto-signé
   changed_when: false
 
 - name: Importer un dashboard node exporter
   grafana_dashboard:
-    grafana_url: "http://{{ ansible_host }}:3000"
+    grafana_url: "grafana:3000"
     grafana_user: "admin"
     grafana_password: "admin"
     dashboard_id: 1860

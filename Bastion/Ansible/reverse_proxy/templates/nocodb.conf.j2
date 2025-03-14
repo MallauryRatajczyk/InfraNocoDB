@@ -1,6 +1,6 @@
 server { 
     listen 80;
-    server_name 34.155.139.235 rocketlacapsule.ddns.net;  # IP & DNS
+    server_name {{ ansible_host }} {{ ansible_bastion_dns }};  # IP & DNS
 
     location /monitoring/ {
         rewrite ^/monitoring/(.*)$ /$1 break;  # Retirer le /monitoring du chemin
