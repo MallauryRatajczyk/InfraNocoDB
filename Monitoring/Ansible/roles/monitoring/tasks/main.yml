@@ -33,7 +33,6 @@
   command:
     chdir: /home/{{ ansible_user }}/monitoring
     cmd: docker-compose up -d
-  notify: Redémarrer Prometheus et Postgres Exporter
 
 - name: Ajout de la source de données Prometheus
   grafana_datasource:
