@@ -81,6 +81,7 @@ ansible_ssh_private_key_file=${var.ssh_key_file}
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
 ansible_nocodb_ip=${var.nocodb}
 ansible_monitoring=${var.monitoring}
+ansible_bastion_dns=${var.dns}
 EOT
   filename = "${path.module}/Ansible/inventory.ini"
 }

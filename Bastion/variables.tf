@@ -67,3 +67,8 @@ variable "monitoring" {
   type    = string
   default = "34.163.103.61"
 }
+
+variable "dns" {
+  type    = string
+  default = ""
+}

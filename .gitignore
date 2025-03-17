@@ -36,5 +36,10 @@ terraform.rc
 # Ignore lock file
 .terraform.lock.hcl
 
+<<<<<<< HEAD
 # Ignore ansible inventory file
 inventory.ini
+=======
+# Ignore ansible inventory
+inventory.ini
+>>>>>>> d1f31de26790c4d7ab2d9f0f3e307124e6fb7471
