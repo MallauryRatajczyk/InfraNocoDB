@@ -17,6 +17,11 @@
     dest: /home/{{ ansible_user }}/monitoring/prometheus.yml
     mode: '0644'
 
+- name: Créer le fichier de configuration Prometheus
+  template:
+    src: prometheus.conf.j2
+    dest: /home/{{ ansible_user }}/monitoring/prometheus.yml
+    mode: '0644'
 
 - name: Copier le fichier des règles d'alerte pour Prometheus
   copy:
