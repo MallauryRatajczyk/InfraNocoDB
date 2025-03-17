@@ -11,7 +11,7 @@ module "bastion" {
   firewall      = "${terraform.workspace}-allow-bastion"
   nocodb        = module.nocodb.nocodb_instance_ip
   monitoring    = module.monitoring.monitoring_instance_ip
-  dns           = (terraform.workspace == "production") ? rocketlacapsule.ddns.net : ""
+  dns           = (terraform.workspace == "production") ? "rocketlacapsule.ddns.net" : ""
   ssh_key_file  = var.ssh_key_file
   ssh_user      = var.ssh_user
 }
