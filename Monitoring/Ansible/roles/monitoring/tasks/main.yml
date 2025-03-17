@@ -57,3 +57,13 @@
     dashboard_revision: 37
     state: present
     validate_certs: no
+
+- name: Importer un dashboard Postgres_exporter
+  grafana_dashboard:
+    grafana_url: "http://{{ ansible_host }}:3000"
+    grafana_user: "admin"
+    grafana_password: "admin"
+    dashboard_id: 14114
+    dashboard_revision: 1
+    state: present
+    validate_certs: no
