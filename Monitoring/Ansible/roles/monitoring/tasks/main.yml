@@ -4,19 +4,7 @@
     path: /home/{{ ansible_user }}/monitoring
     state: directory
     mode: '0755'
-
-- name: Copier le fichier docker-compose.yml
-  copy:
-    src: ./files/docker-compose.yml
-    dest: /home/{{ ansible_user }}/monitoring/docker-compose.yml
-    mode: '0644'
-
-- name: Copier le fichier de configuration Prometheus
-  copy:
-    src: ./files/prometheus.yml
-    dest: /home/{{ ansible_user }}/monitoring/prometheus.yml
-    mode: '0644'
-
+                                                                                                      
 - name: Créer le fichier de configuration Prometheus
   template:
     src: prometheus.conf.j2
@@ -33,6 +21,12 @@
   copy:
     src: ./files/alertmanager.yml
     dest: /home/{{ ansible_user }}/monitoring/alertmanager.yml
+    mode: '0644'
+
+- name: Copier le fichier de configuration Prometheus
+  copy:
+    src: docker-compose.j2
+    dest: /home/{{ ansible_user }}/monitoring/docker-compose.yml
     mode: '0644'
 
 - name: Démarrer les services avec Docker Compose
