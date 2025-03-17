@@ -23,8 +23,8 @@
     dest: /home/{{ ansible_user }}/monitoring/alertmanager.yml
     mode: '0644'
 
-- name: Copier le fichier de configuration Prometheus
-  copy:
+- name: Créer le fichier de configuration docker compose
+  template:
     src: docker-compose.j2
     dest: /home/{{ ansible_user }}/monitoring/docker-compose.yml
     mode: '0644'
