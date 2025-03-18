@@ -42,12 +42,8 @@
     grafana_password: "admin"
     org_id: 1
     ds_type: prometheus
-<<<<<<< HEAD
-    ds_url: "prometheus:9090"
-    state: present
-=======
     ds_url: "http://{{ ansible_host }}:9090"
->>>>>>> 85e2954a70a62ba3fd9fcbcefdae93e4ed1d18af
+    state: present
     validate_certs: no  # Si vous avez un certificat SSL auto-signé
   changed_when: false
 
