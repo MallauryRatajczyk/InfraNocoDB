@@ -1,0 +1,7 @@
+- name: Copier les fichiers pour kube-state-metrics
+  copy:
+    src: ./files/
+    dest: ./kube-state-metrics/
+
+- name: Appliquer les fichiers Kubernetes
+  shell: kubectl apply -f ./kube-state-metrics --validate=false --server=https://127.0.0.1:6443

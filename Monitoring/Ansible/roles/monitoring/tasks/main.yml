@@ -45,7 +45,6 @@
     ds_url: "http://{{ ansible_host }}:9090"
     state: present
     validate_certs: no  # Si vous avez un certificat SSL auto-signé
-  changed_when: false
 
 - name: Importer un dashboard node exporter
   grafana_dashboard:
@@ -64,5 +63,15 @@
     grafana_password: "admin"
     dashboard_id: 14114
     dashboard_revision: 1
+    state: present
+    validate_certs: no
+
+- name: Importer un dashboard Kube state metric
+  grafana_dashboard:
+    grafana_url: "http://{{ ansible_host }}:3000"
+    grafana_user: "admin"
+    grafana_password: "admin"
+    dashboard_id: 15661
+    dashboard_revision: 2
     state: present
     validate_certs: no

@@ -6,3 +6,7 @@ output "nocodb_instance_ip" {
 output "nocodb_instance_names" {
   value = google_compute_instance.nocodb-instance.*.name
 }
+
+output "nocodb_instance_private_ip" {
+  value = google_compute_instance.nocodb-instance.*.network_interface.0.network_ip
+}
