@@ -29,7 +29,7 @@
     dest: /home/{{ ansible_user }}/monitoring/docker-compose.yml
     mode: '0644'
 
-- name: Démarrer les services avec Docker Compose
+- name: Démarrer les services avec Docker Compose # TODO use community.docker.docker_compose_v2.
   command:
     chdir: /home/{{ ansible_user }}/monitoring
     cmd: docker-compose up -d
@@ -43,6 +43,7 @@
     org_id: 1
     ds_type: prometheus
     ds_url: "prometheus:9090"
+    state: present
     validate_certs: no  # Si vous avez un certificat SSL auto-signé
   changed_when: false
 
