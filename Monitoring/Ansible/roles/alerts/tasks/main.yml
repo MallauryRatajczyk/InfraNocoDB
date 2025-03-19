@@ -1,22 +1,44 @@
-- name: Copier le fichier de configuration Prometheus
-  copy:
-    src: ./prometheus.yml
-    dest: /home/{{ ansible_user }}/monitoring/prometheus.yml
-    mode: '0644'
+- name: Créer le dossier de provisioning des alertes Grafana
+  file:
+    path: /etc/grafana/provisioning/alerting
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: yes
 
-- name: Copier le fichier des règles d'alerte pour Prometheus
-  copy:
-    src: ./alert_rules.yml
-    dest: /home/{{ ansible_user }}/monitoring/alert_rules.yml
-    mode: '0644'
+- name: Récupérer la liste des sources de données dans Grafana
+  uri:
+    url: "http://{{ ansible_host }}:3000/api/datasources"
+    method: GET
+    user: "admin"
+    password: "admin"
+    force_basic_auth: yes
+    return_content: yes
+    validate_certs: no
+  register: grafana_datasources
 
-- name: Copier le fichier de configuration d'Alertmanager
-  copy:
-    src: ./alertmanager.yml
-    dest: /home/{{ ansible_user }}/monitoring/alertmanager.yml
-    mode: '0644'
+- name: Extraire l'UID de la source de données Prometheus
+  set_fact:
+    prometheus_uid: "{{ item.uid }}"
+  loop: "{{ grafana_datasources.json }}"
+  when: item.name == 'prometheus'
 
-- name: Redémarrer les services pour appliquer les changements
-  command:
-    chdir: /home/{{ ansible_user }}/monitoring
-    cmd: docker-compose restart
+- name: Vérifier que l'UID de Prometheus a bien été récupéré
+  fail:
+    msg: "Impossible de récupérer l'UID de Prometheus dans Grafana"
+  when: prometheus_uid is not defined
+
+- name: Copier les règles d'alerte YAML avec l'UID dynamique
+  template:
+    src: grafana_alerts.yml.j2
+    dest: /etc/grafana/provisioning/alerting/grafana_alerts.yml
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart Grafana
+
+# - name: Assurer que le docker Grafana est actif
+#   command:
+#     cmd: docker ps --format '{{.Names}}' | grep grafana
+#   register: grafana_status
