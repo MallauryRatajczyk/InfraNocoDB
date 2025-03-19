@@ -23,7 +23,7 @@ module "monitoring" {
   static_ip     = "${terraform.workspace}-static-ip-monitoring"
   disk_name     = "${terraform.workspace}-monitoring-data-disk"
   network       = local.network
-  nocodb        = module.nocodb.nocodb_instance_ip
+  nocodb        = module.nocodb.nocodb_instance_private_ip[0]
   database_ip   = module.storage.storage_instance_ip
   ssh_key_file  = var.ssh_key_file
   ssh_user      = var.ssh_user
