@@ -1,12 +1,42 @@
 server {
     listen 80;
-    server_name rocketlacapsule.ddns.net;  # Remplace par ton domaine ou l'IP publique
+    server_name {{ ansible_host }} {{ ansible_bastion_dns }};  # IP & DNS
 
-    location / {
-        proxy_pass http://10.10.1.2:32222;  # Adresse IP privée de NocoDB dans ton VPC
+    # Redirection HTTP vers HTTPS
+    return 301 https://$host$request_uri;
+}
+server {
+    listen 443 ssl;
+    server_name {{ ansible_host }} {{ ansible_bastion_dns }};  # IP & DNS
+
+    # Configuration SSL
+    ssl_certificate /etc/nginx/ssl/{{ ansible_host }}.crt;
+    ssl_certificate_key /etc/nginx/ssl/{{ ansible_host }}.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256';
+    ssl_prefer_server_ciphers on;
+
+    # Configure HTTP headers to avoid SSL stripping attacks
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    location /monitoring/ {
+        rewrite ^/monitoring/(.*)$ /$1 break;  # Retirer le /monitoring du chemin
+        proxy_pass http://{{ ansible_monitoring }}:3000/;  # Ne pas ajouter /login ici
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {  # NocoDB
+        proxy_pass http://{{ ansible_nocodb_ip }}:32222; 
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
+

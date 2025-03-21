@@ -44,3 +44,38 @@ variable "subnet_nocodb" {
   type        = string
   default     = "subnet-nocodb"  
 }
+
+variable "disk_name" {
+  type    = string
+  default = "monitoring-data-disk"
+}
+
+variable "firewall" {
+  type = list(object({
+    name          = string
+    tags          = list(string)
+    source_ranges = list(string)
+    ports         = list(string)
+  }))
+  default = [{
+    name          = "allow-node-exporter"
+    tags          = ["node-exporter"]
+    source_ranges = ["34.163.103.61/32"]
+    ports         = ["9100"]
+    }, {
+    name          = "allow-custom-port"
+    tags          = ["custom-port"]
+    source_ranges = ["34.155.139.235/32"]
+    ports         = ["32222"]
+  }]
+}
+
+variable "network" {
+  type    = string
+  default = "default"
+}
+
+variable "database_ip" {
+  type    = string
+  default = "34.155.233.126"
+}

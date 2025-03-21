@@ -22,6 +22,7 @@ variable "cidr_ranges" {
     nocodb    = "10.10.1.0/24"
     bastion     = "10.10.2.0/24"
     storage  = "10.10.3.0/24"
+    monitoring = "10.10.4.0/24"
   }
 }
 

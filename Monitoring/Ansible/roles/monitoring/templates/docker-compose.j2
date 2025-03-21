@@ -10,7 +10,7 @@ services:
       - prometheus_data:/prometheus
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     environment:
-      - PROMETHEUS_EXTERNAL_URL=http://34.163.251.126:9100/metrics
+      - PROMETHEUS_EXTERNAL_URL=http://{{ ansible_host }}:9100/metrics
     networks:
       - monitoring
 
@@ -26,9 +26,9 @@ services:
       - prometheus
     volumes:
       - grafana_data:/var/lib/grafana
+      - /etc/grafana/provisioning/alerting:/etc/grafana/provisioning/alerting
     networks:
       - monitoring
-
 
   postgres-exporter:
     image: wrouesnel/postgres_exporter
@@ -36,7 +36,7 @@ services:
     ports:
       - "9187:9187"
     environment:
-      DATA_SOURCE_NAME: "postgres://yohann:azerty@34.155.233.126:5432/mydatabase"
+      DATA_SOURCE_NAME: "postgres://yohann:azerty@{{ ansible_database_ip }}:5432/mydatabase"
     depends_on:
       - prometheus
     networks:

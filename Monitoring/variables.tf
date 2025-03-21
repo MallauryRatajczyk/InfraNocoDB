@@ -44,7 +44,7 @@ variable "instance_name" {
 
 variable "tags" {
   type    = list(string)
-  default = ["http-server", "https-server"]
+  default = ["http-server", "https-server", "monitoring"]
 }
 
 variable "disk_name" {
@@ -55,4 +55,24 @@ variable "disk_name" {
 variable "firewall" {
   type    = string
   default = "jordan-http-https-ssh"
+}
+
+variable "network" {
+  default = "default"
+}
+
+variable "nocodb" {
+  type    = string
+  default = "34.163.251.126"
+}
+
+variable "database_ip" {
+  type    = string
+  default = "34.155.233.126"
+}
+
+variable "subnet_monitoring" {
+  description = "Nom du sous-réseau de Bastion"
+  type        = string
+  default     = "subnet-monitoring"  
 }

@@ -5,4 +5,5 @@
     - docker_setup
     - k8s_setup
     - deploy_nocodb
+    - kube-state-metrics
     - metrics

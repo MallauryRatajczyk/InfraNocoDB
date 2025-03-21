@@ -23,12 +23,15 @@ build:
     action: prepare
   before_script:
     - mkdir .ssh
-    - echo $CI_KEY_SSH > .ssh/id_rsa.pub
-    - echo "user = { name = \"$CI_TERRAFORM_USER\"" > terraform.tfvars
-    - echo " password = \"$CI_TERRAFORM_PASS\"}" >> terraform.tfvars
+    - echo $CI_KEY_SSH | base64 -d > .ssh/ssh_key
+    - echo $CI_KEY_PUB_SSH | base64 -d > .ssh/ssh_key.pub
+    - export NAME=$(echo $CI_TERRAFORM_USER | base64 -d)
+    - export PASS=$(echo $CI_TERRAFORM_PASS | base64 -d)
+    - echo "user = { name = \"$NAME\"" > terraform.tfvars
+    - echo " password = \"$PASS\"}" >> terraform.tfvars
     - cat terraform.tfvars
   script:
-    - gitlab-terraform plan -var-file=terraform.tfvars -var 'ssh_user=$CI_USER_SSH'
+    - gitlab-terraform plan -var-file=terraform.tfvars -var 'ssh_user=$CI_USER_SSH' -var 'ssh_key_file=.ssh/ssh_key'
     - gitlab-terraform plan-json
 
 deploy:
@@ -38,3 +41,10 @@ deploy:
   environment:
     name: $TF_STATE_NAME
     action: start
+  rules:
+    - if: $CI_COMMIT_BRANCH == "prod" || $CI_COMMIT_BRANCH == "preprod"
+      when: manual
+    - when: never
+
+cleanup:
+  extends: .terraform:destroy

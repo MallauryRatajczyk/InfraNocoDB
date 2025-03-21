@@ -30,6 +30,13 @@ resource "google_compute_subnetwork" "subnet_storage" {
   region        = var.region
 }
 
+resource "google_compute_subnetwork" "subnet_monitoring" {
+  name          = "subnet-monitoring"
+  network       = google_compute_network.private_network.id
+  ip_cidr_range = var.cidr_ranges["monitoring"]
+  region        = var.region
+}
+
 resource "google_compute_firewall" "allow_internal_ping" {
   name    = "allow-internal-ping"
   network = google_compute_network.private_network.id
@@ -38,8 +45,8 @@ resource "google_compute_firewall" "allow_internal_ping" {
     protocol = "icmp"
   }
 
-  source_ranges = ["10.10.1.0/24", "10.10.2.0/24", "10.10.3.0/24"]
-  target_tags   = ["nocodb", "bastion"]
+  source_ranges = ["10.10.1.0/24", "10.10.2.0/24", "10.10.3.0/24", "10.10.4.0/24"]
+  target_tags   = ["nocodb", "bastion", "monitoring"]
 }
 
 

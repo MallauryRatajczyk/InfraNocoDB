@@ -25,7 +25,7 @@ resource "google_sql_database_instance" "postgres_instance" {
     ip_configuration {
       ipv4_enabled = true
       authorized_networks {
-        name  = "default"
+        name  = var.network
         value = "0.0.0.0/0" # Assurez-vous de la sécurité de votre base avec cette configuration ouverte
       }
     }

@@ -17,7 +17,7 @@ spec:
         image: nocodb/nocodb:latest
         env:
         - name: POSTGRES_CONNECTION_STRING
-          value: "postgres://yohann:azerty@34.155.233.126:5432/mydatabase"
+          value: "postgres://yohann:azerty@{{ ansible_database_ip }}:5432/mydatabase"
         ports:
         - containerPort: 8080
 ---

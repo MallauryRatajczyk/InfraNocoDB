@@ -22,7 +22,7 @@ resource "google_compute_instance" "nocodb-instance" {
   machine_type = var.ci_runner_instance_type
   project      = var.gcp_project
   zone         = var.gcp_zone
-  tags         = ["gcp-ssh", "nocodb", "bastion"]
+  tags         = ["gcp-ssh", "nocodb", "bastion"] #Pourquoi Bastion ?
   metadata = {
     ssh-keys = "${var.ansible_user}:${file("${var.ssh_key_file}.pub")}"
   }
@@ -36,7 +36,7 @@ resource "google_compute_instance" "nocodb-instance" {
   }
 
   network_interface {
-    network    = var.vpc_name 
+    network = var.network
     subnetwork = var.subnet_nocodb
     access_config {
       nat_ip = google_compute_address.static_ip_nocodb.address
@@ -71,7 +71,7 @@ resource "google_compute_firewall" "allow_ssh_from_bastion" {
 
 resource "google_compute_firewall" "allow_node_exporter" {
   name    = var.firewall[0].name
-  network = "default"
+  network = var.network
 
   allow {
     protocol = "tcp"
@@ -82,9 +82,9 @@ resource "google_compute_firewall" "allow_node_exporter" {
   target_tags   = var.firewall[0].tags
 }
 
-resource "google_compute_firewall" "allow_proxy_port" {
-  name    = "allow-proxy-port"
-  network = "default"
+resource "google_compute_firewall" "allow_custom_port" {
+  name    = var.firewall[1].name
+  network = var.network
 
   allow {
     protocol = "tcp"
@@ -104,7 +104,8 @@ nocodb-instance ansible_host=${google_compute_address.static_ip_nocodb.address}
 ansible_user=${var.ansible_user}
 ansible_ssh_private_key_file=${var.ssh_key_file}
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+ansible_database_ip=${var.database_ip}
 EOT
-  filename = "Ansible/inventory.ini"
+  filename = "${path.module}/Ansible/inventory.ini"
 }
 

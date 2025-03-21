@@ -1,0 +1,292 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: RocketAlertNocoDB
+    folder: AlertesRocketNocoDB
+    interval: 1m
+    rules:
+      - uid: deg4dmucuvcowa
+        title: CPU Basic
+        condition: H
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: {{ prometheus_uid }}
+            model:
+              adhocFilters: []
+              datasource:
+                type: prometheus
+                uid: {{ prometheus_uid }}
+              editorMode: code
+              exemplar: false
+              expr: sum(irate(node_cpu_seconds_total{instance="34.155.139.235:9100",job="nocodb", mode="system"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance="34.155.139.235:9100",job="nocodb"}) by (cpu)))
+              format: time_series
+              instant: false
+              interval: ""
+              intervalFactor: 1
+              intervalMs: 15000
+              legendFormat: Busy System
+              maxDataPoints: 43200
+              range: true
+              refId: A
+              step: 240
+          - refId: B
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: {{ prometheus_uid }}
+            model:
+              adhocFilters: []
+              datasource:
+                type: prometheus
+                uid: {{ prometheus_uid }}
+              editorMode: code
+              expr: sum(irate(node_cpu_seconds_total{instance="34.155.139.235:9100",job="nocodb", mode="user"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance="34.155.139.235:9100",job="nocodb"}) by (cpu)))
+              format: time_series
+              instant: true
+              interval: ""
+              intervalFactor: 1
+              intervalMs: 15000
+              legendFormat: Busy User
+              maxDataPoints: 43200
+              range: false
+              refId: B
+              step: 240
+          - refId: C
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: {{ prometheus_uid }}
+            model:
+              adhocFilters: []
+              datasource:
+                type: prometheus
+                uid: {{ prometheus_uid }}
+              editorMode: code
+              expr: sum(irate(node_cpu_seconds_total{instance="34.155.139.235:9100",job="nocodb", mode="iowait"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance="34.155.139.235:9100",job="nocodb"}) by (cpu)))
+              format: time_series
+              instant: true
+              interval: ""
+              intervalFactor: 1
+              intervalMs: 15000
+              legendFormat: Busy Iowait
+              maxDataPoints: 43200
+              range: false
+              refId: C
+              step: 240
+          - refId: D
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: {{ prometheus_uid }}
+            model:
+              adhocFilters: []
+              datasource:
+                type: prometheus
+                uid: {{ prometheus_uid }}
+              editorMode: code
+              expr: sum(irate(node_cpu_seconds_total{instance="34.155.139.235:9100",job="nocodb", mode=~".*irq"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance="34.155.139.235:9100",job="nocodb"}) by (cpu)))
+              format: time_series
+              instant: true
+              interval: ""
+              intervalFactor: 1
+              intervalMs: 15000
+              legendFormat: Busy IRQs
+              maxDataPoints: 43200
+              range: false
+              refId: D
+              step: 240
+          - refId: E
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: {{ prometheus_uid }}
+            model:
+              adhocFilters: []
+              datasource:
+                type: prometheus
+                uid: {{ prometheus_uid }}
+              editorMode: code
+              expr: sum(irate(node_cpu_seconds_total{instance="34.155.139.235:9100",job="nocodb",  mode!='idle',mode!='user',mode!='system',mode!='iowait',mode!='irq',mode!='softirq'}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance="34.155.139.235:9100",job="nocodb"}) by (cpu)))
+              format: time_series
+              instant: true
+              interval: ""
+              intervalFactor: 1
+              intervalMs: 15000
+              legendFormat: Busy Other
+              maxDataPoints: 43200
+              range: false
+              refId: E
+              step: 240
+          - refId: F
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: {{ prometheus_uid }}
+            model:
+              adhocFilters: []
+              datasource:
+                type: prometheus
+                uid: {{ prometheus_uid }}
+              editorMode: code
+              expr: sum(irate(node_cpu_seconds_total{instance="34.155.139.235:9100",job="nocodb", mode="idle"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance="34.155.139.235:9100",job="nocodb"}) by (cpu)))
+              format: time_series
+              instant: true
+              interval: ""
+              intervalFactor: 1
+              intervalMs: 15000
+              legendFormat: Idle
+              maxDataPoints: 43200
+              range: false
+              refId: F
+              step: 240
+          - refId: G
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - G
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: G
+              type: reduce
+          - refId: H
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0.8
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - H
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: G
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: H
+              type: threshold
+        dashboardUid: rYdddlPWk
+        panelId: 77
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          __dashboardUid__: rYdddlPWk
+          __panelId__: "77"
+        isPaused: false
+        notification_settings:
+          receiver: SlackTeamRocket
+      - uid: aeg4e6chqdpfkb
+        title: Number of active connections
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: {{ prometheus_uid }}
+            model:
+              adhocFilters: []
+              datasource:
+                type: prometheus
+                uid: {{ prometheus_uid }}
+              expr: pg_stat_database_numbackends{datname=~"mydatabase",instance=~"postgres-exporter:9187"}
+              format: time_series
+              instant: true
+              interval: ""
+              intervalFactor: 2
+              intervalMs: 15000
+              legendFormat: "{% raw %}{{__name__}}{% endraw %}"
+              maxDataPoints: 43200
+              range: false
+              refId: A
+              step: 240
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 1
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 2
+                      - 0
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              hide: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: B
+              type: threshold
+        dashboardUid: wGgaPlciz
+        panelId: 13
+        noDataState: NoData
+        execErrState: Error
+        annotations:
+          __dashboardUid__: wGgaPlciz
+          __panelId__: "13"
+        isPaused: false
+        notification_settings:
+          receiver: SlackTeamRocket

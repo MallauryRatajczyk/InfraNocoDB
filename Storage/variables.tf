@@ -95,3 +95,8 @@ variable "dump_cloud_function" {
     file_name   = "dump_postgres.py"
   }
 }
+
+variable "network" {
+  default = "default"
+  type    = string
+}

@@ -9,7 +9,7 @@ resource "google_compute_address" "static_ip_monitoring" {
   name   = var.static_ip
   region = var.gcp_region
   lifecycle {
-    prevent_destroy = true # Empêche la suppression de l'ip statique
+    prevent_destroy = false # Empêche la suppression de l'ip statique
   }
 }
 
@@ -41,7 +41,8 @@ resource "google_compute_instance" "prometheus_grafana_instance" {
   }
 
   network_interface {
-    network = "default"
+    network = var.network
+    subnetwork = var.subnet_bastion
     access_config {
       // Si vide, IP aléatoire mais crée automatiquement
       nat_ip = google_compute_address.static_ip_monitoring.address
@@ -68,13 +69,13 @@ resource "google_compute_disk" "monitoring_data_disk" {
   size = 20            # Taille en Go
 
   lifecycle {
-    prevent_destroy = true # Empêche terraform de supprimer le disque
+    prevent_destroy = false # Empêche terraform de supprimer le disque
   }
 }
 
 resource "google_compute_firewall" "allow_http_https_ssh" { #Configuration du firewall
   name    = var.firewall
-  network = "default"
+  network = var.network
 
   allow {
     protocol = "tcp"
@@ -85,11 +86,6 @@ resource "google_compute_firewall" "allow_http_https_ssh" { #Configuration du fi
   target_tags   = var.tags      # accessible uniquement par ceux ayant le tag
 }
 
-output "instance_ip" {
-  value       = google_compute_address.static_ip_monitoring.address
-  description = "Adresse IP publique de la VM"
-}
-
 resource "local_file" "ansible_inventory" { #Créer un fichier inventory.ini pour Ansible
   content = <<EOT
  [servers]
@@ -98,8 +94,11 @@ resource "local_file" "ansible_inventory" { #Créer un fichier inventory.ini pou
  [all:vars]
  ansible_user=${var.ssh_user}
  ansible_ssh_private_key_file=${var.ssh_key_file}
+ ansible_disk_name=${var.disk_name}
+ ansible_nocodb_ip=${var.nocodb}
+ ansible_database_ip=${var.database_ip}
  EOT
 
   #ansible_user est le nom d'utilisateur par défaut de la VM
-  filename = "Monitoring/Ansible/inventory.ini"
+  filename = "${path.module}/Ansible/inventory.ini"
 }

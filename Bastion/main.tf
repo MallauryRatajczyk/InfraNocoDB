@@ -44,11 +44,17 @@ resource "google_compute_instance" "bastion-instance" { #Création d'une VM pour
       nat_ip = google_compute_address.static_ip_bastion.address 
     }
   }
+
+  /* scheduling {
+      preemptible       = true
+      automatic_restart = false
+    }*/ #Permet si activé de fermer automatiquement la VM si les ressources sont demandées ailleurs et de ne pas redémarrer automatiquement
 }
 
- resource "google_compute_firewall" "bastion_firewall" { #Configuration du firewall
-   name    = "allow-bastion"
-   network = var.vpc_name
+# Configuration du firewall
+resource "google_compute_firewall" "bastion_firewall" {
+  name    = var.firewall
+  network = var.network
 
    allow {
      protocol = "tcp"
@@ -69,6 +75,11 @@ bastion-instance ansible_host=${google_compute_address.static_ip_bastion.address
 ansible_user=${var.ssh_user}
 ansible_ssh_private_key_file=${var.ssh_key_file}
 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+ansible_nocodb_ip=${var.nocodb}
+ansible_monitoring=${var.monitoring}
+ansible_bastion_dns=${var.dns}
 EOT
-  filename = "Ansible/inventory.ini"
+  filename = "${path.module}/Ansible/inventory.ini"
 }
+
+
