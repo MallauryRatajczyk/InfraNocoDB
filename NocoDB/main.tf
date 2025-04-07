@@ -44,17 +44,17 @@ resource "google_compute_instance" "nocodb-instance" {
   }
 }
 
- resource "google_compute_firewall" "allow_gcp_ssh2" {
-    name    = "allow-gcp-ssh2"
-    network = var.vpc_name
-    allow {
-      protocol = "tcp"
-      ports    = ["22"]  # Ouverture du port SSH (22)
-    }
+#  resource "google_compute_firewall" "allow_gcp_ssh2" {
+#     name    = "allow-gcp-ssh2"
+#     network = var.vpc_name
+#     allow {
+#       protocol = "tcp"
+#       ports    = ["22"]  # Ouverture du port SSH (22)
+#     }
 
-    source_ranges = ["0.0.0.0/0"]
-    target_tags   = ["gcp-ssh"]
-  }
+#     source_ranges = ["0.0.0.0/0"]
+#     target_tags   = ["gcp-ssh"]
+#   }
 
 resource "google_compute_firewall" "allow_ssh_from_bastion" {
   name    = "allow-ssh-from-bastion"

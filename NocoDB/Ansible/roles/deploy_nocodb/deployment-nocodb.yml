@@ -13,13 +13,21 @@ spec:
         app: nocodb
     spec:
       containers:
-      - name: nocodb
-        image: nocodb/nocodb:latest
-        env:
-        - name: POSTGRES_CONNECTION_STRING
-          value: "postgres://yohann:azerty@{{ ansible_database_ip }}:5432/mydatabase"
-        ports:
-        - containerPort: 8080
+        - name: nocodb
+          resources:
+          limits:
+            memory: 512Mi
+            cpu: "1"
+          requests:
+            memory: 256Mi
+            cpu: "0.2"
+          image: nocodb/nocodb:latest
+          env:
+            - name: POSTGRES_CONNECTION_STRING
+              value: "postgres://yohann:azerty@{{ ansible_database_ip }}:5432/mydatabase"
+          ports:
+            - containerPort: 8080
+
 ---
 apiVersion: v1
 kind: Service
@@ -32,6 +40,6 @@ spec:
     app: nocodb
   ports:
     - protocol: TCP
-      port: 8080       # Port accessible à l'intérieur du cluster
-      targetPort: 8080  # Port sur lequel tourne NocoDB dans le conteneur
-      nodePort: 32222 
+      port: 8080 # Port accessible à l'intérieur du cluster
+      targetPort: 8080 # Port sur lequel tourne NocoDB dans le conteneur
+      nodePort: 32222
