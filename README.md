@@ -44,9 +44,8 @@ Le projet met en œuvre une architecture DevOps moderne basée sur **Kubernetes*
 ---
 
 ## 📐 Architecture
-[ Utilisateur ] | v [ HTTPS (Certbot + Nginx) ] | v [ NocoDB sur K3s (Kubernetes léger) ] | v [ Base de données distante (MySQL, PostgreSQL, etc.) ]
-
-
+[ Utilisateur ] ->  [ HTTPS (Certbot + Nginx) ] -> [ NocoDB sur K3s (Kubernetes léger) ] -> [ Base de données distante (MySQL, PostgreSQL, etc.) ]
+(Ce schéma exlut l'instance de monitoring directement accessible via /monitoring)
 ---
 
 ## 🔧 Prérequis
