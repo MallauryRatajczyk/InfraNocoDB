@@ -27,6 +27,8 @@ Le projet met en œuvre une architecture DevOps moderne basée sur **Kubernetes*
 | **Certbot (Let’s Encrypt)** | Génération automatique de certificats SSL |
 | **Linux (Debian)**| Système de base utilisé sur les VM cloud |
 | **Cloud Provider**| GCP |
+| **Prometheus**| Monitoring |
+| **Grafana**| Monitoring |
 
 ---
 
@@ -76,3 +78,38 @@ Fichier : terraform/variables.tf
 3. **Lancer le déploiement** :
 terraform init
 terraform apply
+
+✅ En quelques minutes, vous aurez :
+
+Une VM provisionnée
+Kubernetes installé et prêt
+NocoDB déployé
+Certificat HTTPS actif via Let’s Encrypt
+Accès disponible à https://votre-domaine.com
+
+🧪 Utilisation
+Ouvrez votre navigateur sur https://votre-domaine.com
+
+Connectez une base de données existante (MySQL, PostgreSQL, etc.)
+
+Créez des vues, APIs REST, et interfaces no-code en quelques clics
+
+🤝 Contribution
+Les contributions sont les bienvenues ! 🙌
+
+Forkez ce dépôt
+
+Créez une branche (git checkout -b feature/ma-feature)
+
+Commitez vos changements (git commit -m 'Ajout de ma feature')
+
+Poussez la branche (git push origin feature/ma-feature)
+
+Ouvrez une Pull Request
+
+👩‍💻 À propos
+Mallaury Ratajczyk
+Passionnée par le DevOps, l’automatisation, les architectures cloud et les outils open-source.
+📧 mallaury.ratajczyk@gmail.com
+🔗 LinkedIn : https://www.linkedin.com/in/mallaury-ratajczyk-12217131b/
+
