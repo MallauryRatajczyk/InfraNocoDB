@@ -79,7 +79,7 @@ Fichier : terraform/variables.tf
 terraform init
 terraform apply
 
-###✅ En quelques minutes, vous aurez :
+## ✅ En quelques minutes, vous aurez :
 
 Une VM provisionnée
 Kubernetes installé et prêt
@@ -87,14 +87,14 @@ NocoDB déployé
 Certificat HTTPS actif via Let’s Encrypt
 Accès disponible à https://votre-domaine.com
 
-###🧪 Utilisation
+## 🧪 Utilisation
 Ouvrez votre navigateur sur https://votre-domaine.com
 
 Connectez une base de données existante (MySQL, PostgreSQL, etc.)
 
 Créez des vues, APIs REST, et interfaces no-code en quelques clics
 
-###🤝 Contribution
+## 🤝 Contribution
 Les contributions sont les bienvenues ! 🙌
 
 Forkez ce dépôt
@@ -107,7 +107,7 @@ Poussez la branche (git push origin feature/ma-feature)
 
 Ouvrez une Pull Request
 
-###👩‍💻 À propos
+## 👩‍💻 À propos
 Mallaury Ratajczyk
 Passionnée par le DevOps, l’automatisation, les architectures cloud et les outils open-source.
 📧 mallaury.ratajczyk@gmail.com
