@@ -100,18 +100,6 @@ Créez des vues, APIs REST, et interfaces no-code en quelques clics
 
 Pour le monitoring, allez sur https://votre-domaine.com/monitoring
 
-## 🤝 Contribution
-Les contributions sont les bienvenues ! 🙌
-
-Forkez ce dépôt
-
-Créez une branche (git checkout -b feature/ma-feature)
-
-Commitez vos changements (git commit -m 'Ajout de ma feature')
-
-Poussez la branche (git push origin feature/ma-feature)
-
-Ouvrez une Pull Request
 
 ## 👩‍💻 À propos
 Mallaury Ratajczyk
