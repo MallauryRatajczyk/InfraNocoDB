@@ -86,6 +86,7 @@ Kubernetes installé et prêt
 NocoDB déployé
 Certificat HTTPS actif via Let’s Encrypt
 Accès disponible à https://votre-domaine.com
+Une instance de monitoring sur https://votre-domaine.com/monitoring
 
 ## 🧪 Utilisation
 Ouvrez votre navigateur sur https://votre-domaine.com
@@ -93,6 +94,8 @@ Ouvrez votre navigateur sur https://votre-domaine.com
 Connectez une base de données existante (MySQL, PostgreSQL, etc.)
 
 Créez des vues, APIs REST, et interfaces no-code en quelques clics
+
+Pour le monitoring, allez sur https://votre-domaine.com/monitoring
 
 ## 🤝 Contribution
 Les contributions sont les bienvenues ! 🙌
