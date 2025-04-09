@@ -61,7 +61,7 @@ Ce schéma exlut l'instance de monitoring directement accessible via /monitoring
 
 ## Schéma
 
-![Schéma de l'infrastructure NocoDB](./rocket.png)
+![Schéma de l'infrastructure NocoDB](./wrocket.png)
 
 ## 🚀 Déploiement (automatisé)
 
