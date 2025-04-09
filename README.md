@@ -86,6 +86,7 @@ Kubernetes installé et prêt
 NocoDB déployé
 Certificat HTTPS actif via Let’s Encrypt
 Accès disponible à https://votre-domaine.com
+
 Une instance de monitoring sur https://votre-domaine.com/monitoring
 
 ## 🧪 Utilisation
