@@ -59,6 +59,10 @@ Ce schéma exlut l'instance de monitoring directement accessible via /monitoring
 
 ---
 
+## Schéma
+
+![Schéma de l'infrastructure NocoDB](./rocket(1).png)
+
 ## 🚀 Déploiement (automatisé)
 
 > Tout est géré automatiquement par Terraform + Ansible + Kubernetes.
